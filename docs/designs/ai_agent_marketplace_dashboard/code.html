@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Agent Marketplace Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111722",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111722; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232f48; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased selection:bg-primary selection:text-white">
+<!-- Navbar Component (Adapted from provided list) -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#232f48] bg-background-light dark:bg-[#111722] px-6 py-3 lg:px-10">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-slate-900 dark:text-white">
+<div class="size-8 flex items-center justify-center bg-primary rounded text-white">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">AgentHub</h2>
+</div>
+<!-- Search Bar -->
+<label class="hidden md:flex flex-col min-w-40 !h-10 w-full max-w-[480px]">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full border border-slate-200 dark:border-transparent bg-white dark:bg-[#232f48] focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+<div class="text-slate-400 dark:text-[#92a4c9] flex border-none items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-transparent focus:border-none h-full placeholder:text-slate-400 dark:placeholder:text-[#92a4c9] px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal" placeholder="Find an agent capability..." value=""/>
+<div class="hidden sm:flex items-center pr-2">
+<kbd class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-400 dark:text-[#92a4c9] font-medium font-sans bg-slate-100 dark:bg-[#1a2333] rounded">⌘K</kbd>
+</div>
+</div>
+</label>
+</div>
+<div class="flex items-center gap-4 lg:gap-8">
+<div class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-[#94a3b8] hover:text-primary dark:hover:text-white transition-colors text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-[#94a3b8] hover:text-primary dark:hover:text-white transition-colors text-sm font-medium leading-normal" href="#">My Agents</a>
+<a class="text-slate-600 dark:text-[#94a3b8] hover:text-primary dark:hover:text-white transition-colors text-sm font-medium leading-normal" href="#">Settings</a>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary hover:bg-blue-600 transition-colors text-white text-sm font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/25">
+<span class="truncate">Create Agent</span>
+</button>
+<button class="flex items-center justify-center rounded-lg size-9 bg-slate-100 dark:bg-[#232f48] hover:bg-slate-200 dark:hover:bg-[#304163] text-slate-600 dark:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg size-9 bg-slate-100 dark:bg-[#232f48] hover:bg-slate-200 dark:hover:bg-[#304163] text-slate-600 dark:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar -->
+<aside class="hidden lg:flex w-64 flex-col border-r border-slate-200 dark:border-[#232f48] bg-background-light dark:bg-[#111722] p-4 gap-6 sticky top-0 h-[calc(100vh-65px)] overflow-y-auto">
+<div class="flex flex-col gap-1">
+<h3 class="px-3 text-xs font-semibold text-slate-500 dark:text-[#94a3b8] uppercase tracking-wider mb-2">Marketplace</h3>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium" href="#">
+<span class="material-symbols-outlined text-[20px] filled">grid_view</span>
+<span class="text-sm">All Agents</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#232f48] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary dark:text-[#94a3b8] dark:group-hover:text-white transition-colors">rocket_launch</span>
+<span class="text-sm font-medium">Productivity</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#232f48] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary dark:text-[#94a3b8] dark:group-hover:text-white transition-colors">palette</span>
+<span class="text-sm font-medium">Creative</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#232f48] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary dark:text-[#94a3b8] dark:group-hover:text-white transition-colors">terminal</span>
+<span class="text-sm font-medium">Technical</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#232f48] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary dark:text-[#94a3b8] dark:group-hover:text-white transition-colors">analytics</span>
+<span class="text-sm font-medium">Data Analysis</span>
+</a>
+</div>
+<div class="h-px bg-slate-200 dark:bg-[#232f48] w-full"></div>
+<div class="flex flex-col gap-1">
+<h3 class="px-3 text-xs font-semibold text-slate-500 dark:text-[#94a3b8] uppercase tracking-wider mb-2">My Workspace</h3>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#232f48] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary dark:text-[#94a3b8] dark:group-hover:text-white transition-colors">history</span>
+<span class="text-sm font-medium">Recent Activity</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#232f48] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary dark:text-[#94a3b8] dark:group-hover:text-white transition-colors">favorite</span>
+<span class="text-sm font-medium">Favorites</span>
+</a>
+</div>
+<div class="mt-auto p-4 rounded-xl bg-gradient-to-br from-primary/20 to-transparent border border-primary/10">
+<p class="text-sm font-semibold text-slate-900 dark:text-white mb-1">Upgrade Plan</p>
+<p class="text-xs text-slate-500 dark:text-[#94a3b8] mb-3">Get access to premium agents and faster processing.</p>
+<button class="w-full py-1.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-blue-600 transition-colors">Upgrade Now</button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-[#111722] p-4 lg:p-8">
+<div class="max-w-[1400px] mx-auto flex flex-col gap-8">
+<!-- Hero Section -->
+<div class="relative overflow-hidden rounded-2xl bg-[#1a2333] border border-[#232f48]">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5"></div>
+<div class="relative z-10 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+<div class="max-w-xl">
+<h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3">Discover AI Agents</h1>
+<p class="text-slate-600 dark:text-[#94a3b8] text-lg">Browse our marketplace of specialized AI personas to boost your workflow. From coding assistants to creative writers.</p>
+</div>
+<div class="flex gap-3">
+<div class="hidden md:flex flex-col items-end">
+<span class="text-2xl font-bold text-white">1,240+</span>
+<span class="text-sm text-[#94a3b8]">Active Agents</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Filters Strip -->
+<div class="flex flex-wrap items-center gap-3 pb-2 overflow-x-auto no-scrollbar">
+<button class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium whitespace-nowrap">
+                        Most Popular
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-[#232f48] bg-white dark:bg-[#1a2333] hover:bg-slate-50 dark:hover:bg-[#232f48] text-slate-600 dark:text-slate-300 text-sm font-medium transition-colors whitespace-nowrap">
+                        Newest Arrivals
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-[#232f48] bg-white dark:bg-[#1a2333] hover:bg-slate-50 dark:hover:bg-[#232f48] text-slate-600 dark:text-slate-300 text-sm font-medium transition-colors whitespace-nowrap">
+                        Highest Rated
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-[#232f48] bg-white dark:bg-[#1a2333] hover:bg-slate-50 dark:hover:bg-[#232f48] text-slate-600 dark:text-slate-300 text-sm font-medium transition-colors whitespace-nowrap">
+                        Free to Use
+                    </button>
+<div class="w-px h-6 bg-slate-300 dark:bg-[#232f48] mx-2"></div>
+<button class="flex items-center gap-1 text-slate-500 dark:text-[#94a3b8] hover:text-primary text-sm font-medium whitespace-nowrap ml-auto">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+                        Advanced Filters
+                    </button>
+</div>
+<!-- Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Card 1: Code Master -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2333] border border-slate-200 dark:border-[#232f48] rounded-xl overflow-hidden hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+<div class="p-5 flex flex-col gap-4 flex-1">
+<div class="flex justify-between items-start">
+<div class="relative">
+<div class="size-14 rounded-full overflow-hidden border-2 border-slate-100 dark:border-[#232f48]">
+<img alt="Abstract digital brain illustration in blue and purple" class="w-full h-full object-cover" data-alt="Abstract digital brain illustration in blue and purple" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD60HewX_en7ORZ1fo04eov02ofoA4F8syMOjaLWIp5oQtLQ2j-ixnjpqgD1EYQoJlLtGC6uLlLJWt-ki3yDRCq76gHdkYblGEdfM-SkhGiLyP-1Fi9y7rnaZZ71Obnli4F6dzSDxwRV2zW4FtH2vJMjIbyKXMvw1Jab_3Cs8qtTObFlyaHcUns9Q5UzfaVTRpNq4N28dL3sYPWvwFH-1j-jCsTbWcv4JXJEcNU5qg8zHHvSzsKq6GWfgeQrTxclJraYse6feM0Rfg"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-green-500 border-2 border-white dark:border-[#1a2333] size-4 rounded-full"></div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[22px]">favorite</span>
+</button>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Code Master</h3>
+<p class="text-sm text-slate-500 dark:text-[#94a3b8] line-clamp-2 mt-1">Expert in Python &amp; React refactoring. Can debug complex systems in seconds.</p>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-2">
+<span class="px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold border border-blue-100 dark:border-blue-500/20">Python</span>
+<span class="px-2.5 py-1 rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-semibold border border-indigo-100 dark:border-indigo-500/20">React</span>
+<span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold border border-slate-200 dark:border-slate-700">Debug</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-100 dark:border-[#232f48] flex items-center justify-between bg-slate-50/50 dark:bg-[#151b26]">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-yellow-500 filled">star</span>
+                                4.9 (2.1k)
+                            </div>
+<button class="text-sm font-bold text-primary hover:text-blue-600 transition-colors flex items-center gap-1">
+                                Deploy Agent <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 2: Copy Ninja -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2333] border border-slate-200 dark:border-[#232f48] rounded-xl overflow-hidden hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+<div class="p-5 flex flex-col gap-4 flex-1">
+<div class="flex justify-between items-start">
+<div class="relative">
+<div class="size-14 rounded-full overflow-hidden border-2 border-slate-100 dark:border-[#232f48]">
+<img alt="Minimalist abstract camera lens or eye graphic" class="w-full h-full object-cover" data-alt="Minimalist abstract camera lens or eye graphic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6y8xccVf3WcQmXc6t1TpiZFivRD4b1xPRGRZW-3qP5OW66fgDk1_MRve6iH0MjSwqgODLO9KbzCwvjnwlZIr20sQfOQCN6JtbdpE6jxG2wfrApnnSZuqwIKkJGnEvrys1gfXwHEnSghcFHsGXZdo1uZv8kbRZQjqbFFcABwEJo6aAq6AeySD8NiQE2wxiAHBqn6LbUjJI5z89vmNIJcoyBMpNM4sQtV6tS0DtDhHAaO1AXIG4c0rrfz78yxfhbMBX9e5CiLwA46k"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-green-500 border-2 border-white dark:border-[#1a2333] size-4 rounded-full"></div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[22px]">favorite</span>
+</button>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Copy Ninja</h3>
+<p class="text-sm text-slate-500 dark:text-[#94a3b8] line-clamp-2 mt-1">Writes high-converting marketing copy for blogs, emails, and landing pages.</p>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-2">
+<span class="px-2.5 py-1 rounded bg-pink-50 dark:bg-pink-500/10 text-pink-600 dark:text-pink-400 text-xs font-semibold border border-pink-100 dark:border-pink-500/20">SEO</span>
+<span class="px-2.5 py-1 rounded bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-semibold border border-purple-100 dark:border-purple-500/20">Creative</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-100 dark:border-[#232f48] flex items-center justify-between bg-slate-50/50 dark:bg-[#151b26]">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-yellow-500 filled">star</span>
+                                4.8 (850)
+                            </div>
+<button class="text-sm font-bold text-primary hover:text-blue-600 transition-colors flex items-center gap-1">
+                                Deploy Agent <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 3: Data Seek -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2333] border border-slate-200 dark:border-[#232f48] rounded-xl overflow-hidden hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+<div class="p-5 flex flex-col gap-4 flex-1">
+<div class="flex justify-between items-start">
+<div class="relative">
+<div class="size-14 rounded-full overflow-hidden border-2 border-slate-100 dark:border-[#232f48]">
+<img alt="Abstract data visualization chart graphic" class="w-full h-full object-cover" data-alt="Abstract data visualization chart graphic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv_wrDItLfnUfgduJvA3sS0ViGSxgljzusrGf_ePq4kqrfTnzKrGWPdxKYzsXskk3uQpGS7BBySxRv-d2p07TPGveKEA_QBhmEB_DnGWlraYgUU9MOdI_8OUMXSOSXYNo_Dt9-VDeO7imgNWHtpqIphy3tShM3CqhQxyqt55WoUpvH5DriyueowEv6XaXDRd8Qgj5Uw0_qD5zNlFgm3Zc8xlunimnRlRqi-Ws07yaM9mZNqZzaYrip9t4bDeJaL6vYZNjQ4i1wEhw"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-gray-400 border-2 border-white dark:border-[#1a2333] size-4 rounded-full"></div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[22px]">favorite</span>
+</button>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Data Seek</h3>
+<p class="text-sm text-slate-500 dark:text-[#94a3b8] line-clamp-2 mt-1">Visualizes complex datasets instantly. SQL expert and Tableau integration.</p>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-2">
+<span class="px-2.5 py-1 rounded bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-semibold border border-teal-100 dark:border-teal-500/20">Analytics</span>
+<span class="px-2.5 py-1 rounded bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-semibold border border-cyan-100 dark:border-cyan-500/20">SQL</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-100 dark:border-[#232f48] flex items-center justify-between bg-slate-50/50 dark:bg-[#151b26]">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-yellow-500 filled">star</span>
+                                4.9 (1.2k)
+                            </div>
+<button class="text-sm font-bold text-primary hover:text-blue-600 transition-colors flex items-center gap-1">
+                                Deploy Agent <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 4: Support Bot X -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2333] border border-slate-200 dark:border-[#232f48] rounded-xl overflow-hidden hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+<div class="p-5 flex flex-col gap-4 flex-1">
+<div class="flex justify-between items-start">
+<div class="relative">
+<div class="size-14 rounded-full overflow-hidden border-2 border-slate-100 dark:border-[#232f48]">
+<img alt="Abstract robot face 3d render" class="w-full h-full object-cover" data-alt="Abstract robot face 3d render" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg0Q08kOa45UH-SbcKy6Q9NgQyAw-E4I2zRlapKNJ_83ynyIG4hK5guotdnagtrzQ3VZalmLN2srOSZacVmmmD0Ewrgt5R7BF9XnXxpC1Ctz6nVOlCoEBRKHEGDycmZtSCdKd_Fnds0ENxHZIGj3G57T5PFWSYAfjS19xlF3tX_D3clfb8limiFjcv_5pou6j1ihkACpP3tXwJTmrb6mekT0Loi_IuFR8siUT_ai03z_IQTeouGQeqtzrMu9n1dK9MoY8QiRjEssg"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-green-500 border-2 border-white dark:border-[#1a2333] size-4 rounded-full"></div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[22px] filled text-red-500">favorite</span>
+</button>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Support Bot X</h3>
+<p class="text-sm text-slate-500 dark:text-[#94a3b8] line-clamp-2 mt-1">24/7 customer support automation with human-like empathy and multi-language.</p>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-2">
+<span class="px-2.5 py-1 rounded bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-semibold border border-orange-100 dark:border-orange-500/20">Support</span>
+<span class="px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold border border-blue-100 dark:border-blue-500/20">Chat</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-100 dark:border-[#232f48] flex items-center justify-between bg-slate-50/50 dark:bg-[#151b26]">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-yellow-500 filled">star</span>
+                                4.6 (520)
+                            </div>
+<button class="text-sm font-bold text-primary hover:text-blue-600 transition-colors flex items-center gap-1">
+                                Deploy Agent <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 5: Research Pro -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2333] border border-slate-200 dark:border-[#232f48] rounded-xl overflow-hidden hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+<div class="p-5 flex flex-col gap-4 flex-1">
+<div class="flex justify-between items-start">
+<div class="relative">
+<div class="size-14 rounded-full overflow-hidden border-2 border-slate-100 dark:border-[#232f48] bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+<span class="text-2xl font-bold text-slate-500 dark:text-slate-400">RP</span>
+</div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[22px]">favorite</span>
+</button>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Research Pro</h3>
+<p class="text-sm text-slate-500 dark:text-[#94a3b8] line-clamp-2 mt-1">Summarizes academic papers and web articles. Generates citations automatically.</p>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-2">
+<span class="px-2.5 py-1 rounded bg-lime-50 dark:bg-lime-500/10 text-lime-600 dark:text-lime-400 text-xs font-semibold border border-lime-100 dark:border-lime-500/20">Academic</span>
+<span class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold border border-slate-200 dark:border-slate-700">Writing</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-100 dark:border-[#232f48] flex items-center justify-between bg-slate-50/50 dark:bg-[#151b26]">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-yellow-500 filled">star</span>
+                                4.7 (310)
+                            </div>
+<button class="text-sm font-bold text-primary hover:text-blue-600 transition-colors flex items-center gap-1">
+                                Deploy Agent <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 6: Design Mate -->
+<div class="group flex flex-col bg-white dark:bg-[#1a2333] border border-slate-200 dark:border-[#232f48] rounded-xl overflow-hidden hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+<div class="p-5 flex flex-col gap-4 flex-1">
+<div class="flex justify-between items-start">
+<div class="relative">
+<div class="size-14 rounded-full overflow-hidden border-2 border-slate-100 dark:border-[#232f48]">
+<img alt="Abstract colorful paint splash" class="w-full h-full object-cover" data-alt="Abstract colorful paint splash" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZfcqm0KjaKAKXp8fMICLS9cMjWc_hVNvejqZ1bviRCXm8NUIZlChN5r-D-Wh-8GxbMy0x94DKizZjeTpWzfxf93Hn7YRqRsBgzx7RdEIpwj7jbwSwN1D99tgIOPYfCSzV1yMTjVz3cS29qdqK5XuEaahg5bFeGH7PNtqIdrXBoeBXFyAVv0r5J9bnqJ5mphUaN2ZAgz_wy4_B_kxfUcnnJtHsY68i2k3FpFpRd0S0wwNhaWJN9XFu1DkjmMqAoGqYn8rKHCL-Y6E"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-green-500 border-2 border-white dark:border-[#1a2333] size-4 rounded-full"></div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[22px]">favorite</span>
+</button>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">Design Mate</h3>
+<p class="text-sm text-slate-500 dark:text-[#94a3b8] line-clamp-2 mt-1">Generates UI mockups and color palettes from text descriptions.</p>
+</div>
+<div class="flex flex-wrap gap-2 mt-auto pt-2">
+<span class="px-2.5 py-1 rounded bg-fuchsia-50 dark:bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 text-xs font-semibold border border-fuchsia-100 dark:border-fuchsia-500/20">UI/UX</span>
+<span class="px-2.5 py-1 rounded bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs font-semibold border border-violet-100 dark:border-violet-500/20">Image Gen</span>
+</div>
+</div>
+<div class="p-4 border-t border-slate-100 dark:border-[#232f48] flex items-center justify-between bg-slate-50/50 dark:bg-[#151b26]">
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="material-symbols-outlined text-[16px] text-yellow-500 filled">star</span>
+                                4.5 (190)
+                            </div>
+<button class="text-sm font-bold text-primary hover:text-blue-600 transition-colors flex items-center gap-1">
+                                Deploy Agent <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-center gap-2 mt-6 mb-10">
+<button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-[#232f48] hover:bg-slate-100 dark:hover:bg-[#232f48] text-slate-500 dark:text-[#94a3b8] disabled:opacity-50">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-lg bg-primary text-white font-bold">1</button>
+<button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-[#232f48] hover:bg-slate-100 dark:hover:bg-[#232f48] text-slate-600 dark:text-slate-300 font-medium transition-colors">2</button>
+<button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-[#232f48] hover:bg-slate-100 dark:hover:bg-[#232f48] text-slate-600 dark:text-slate-300 font-medium transition-colors">3</button>
+<span class="text-slate-400 dark:text-[#94a3b8] px-2">...</span>
+<button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-[#232f48] hover:bg-slate-100 dark:hover:bg-[#232f48] text-slate-500 dark:text-[#94a3b8]">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+</body></html>
