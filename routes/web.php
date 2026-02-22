@@ -41,6 +41,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('agents', \App\Http\Controllers\Admin\AgentController::class);
     Route::post('agents/{agent}/knowledge', [\App\Http\Controllers\Admin\AgentController::class, 'uploadKnowledge'])
         ->name('agents.knowledge.upload');
+
+    // User Management Routes
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::post('users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])
+        ->name('users.toggle-status');
+
+    // Analytics Routes
+    Route::get('analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('analytics/data', [\App\Http\Controllers\Admin\AnalyticsController::class, 'data'])->name('analytics.data');
 });
 
 require __DIR__ . '/auth.php';

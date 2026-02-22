@@ -37,6 +37,7 @@ return [
 
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
+        'management_key' => env('OPENROUTER_MANAGEMENT_KEY'),
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
         'profit_multiplier' => env('AI_PROFIT_MULTIPLIER', 2.0),
         'models' => [

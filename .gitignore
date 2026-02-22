@@ -21,3 +21,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Ignore project specifications and documentations
+docs/
+prd.md

@@ -24,7 +24,7 @@
                         <p class="font-bold">{{ __('Quota Pemakaian Pelanggan Telah Habis!') }}</p>
                     </div>
                     <p class="text-sm mt-1">
-                        {{ __('AI Agent tidak akan merespon hingga Anda melakukan top-up atau menaikkan limit di OpenRouter.') }}
+                        {{ __('AI Agent tidak akan merespon hingga Anda melakukan top-up atau menaikkan limit API.') }}
                     </p>
                 </div>
             @endif
@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <!-- Manage Agents -->
                 <a href="{{ route('admin.agents.index') }}"
                     class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-all hover:-translate-y-1">
@@ -87,34 +87,50 @@
                     </div>
                 </a>
 
-                <!-- Analytics -->
-                <div
-                    class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 opacity-75">
+                <!-- Manage Users -->
+                <a href="{{ route('admin.users.index') }}"
+                    class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-all hover:-translate-y-1">
                     <div class="flex flex-col">
                         <div
-                            class="size-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4">
+                            class="size-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                            <span class="material-symbols-outlined text-[32px]">group</span>
+                        </div>
+                        <div>
+                            <h3
+                                class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                {{ __('Kelola Pengguna') }}
+                            </h3>
+                            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">
+                                {{ __('Lihat, tambah, dan kelola semua pengguna yang terdaftar.') }}
+                            </p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Analytics -->
+                <a href="{{ route('admin.analytics.index') }}"
+                    class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-all hover:-translate-y-1">
+                    <div class="flex flex-col">
+                        <div
+                            class="size-14 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 transition-colors group-hover:bg-amber-600 group-hover:text-white">
                             <span class="material-symbols-outlined text-[32px]">analytics</span>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('Analitik & Laporan') }}
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{{ __('Analitik & Laporan') }}
                             </h3>
                             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">
                                 {{ __('Lihat statistik penggunaan dan efisiensi agen AI secara real-time.') }}
                             </p>
                         </div>
                     </div>
-                    <div class="absolute top-4 right-4">
-                        <span
-                            class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 rounded uppercase tracking-wider">{{ __('Segera Hadir') }}</span>
-                    </div>
-                </div>
+                </a>
 
                 <!-- Settings -->
                 <div
                     class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 opacity-75">
                     <div class="flex flex-col">
                         <div
-                            class="size-14 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4">
+                            class="size-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 mb-4">
                             <span class="material-symbols-outlined text-[32px]">settings</span>
                         </div>
                         <div>
