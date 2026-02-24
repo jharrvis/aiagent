@@ -22,6 +22,6 @@ yarn-error.log
 /.vscode
 /.zed
 
-# Ignore project specifications and documentations
-docs/
+# Ignore project specifications (keep documentation)
+# docs/ - Documentation is now tracked
 prd.md
