@@ -8,10 +8,10 @@
                 <div
                     class="relative z-10 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div class="max-w-xl">
-                        <h1 class="text-3xl md:text-4xl font-bold text-white mb-3">{{ __('Temukan Agen AI Terbaik') }}
+                        <h1 class="text-3xl md:text-4xl font-bold text-white mb-3">{{ __('Asisten CEO') }}
                         </h1>
                         <p class="text-slate-400 text-lg">
-                            {{ __('Jelajahi pasar agen AI khusus kami untuk meningkatkan alur kerja Anda. Dari asisten coding hingga penulis kreatif.') }}
+                            {{ __('Asisten CEO AI untuk membantu anda meningkatkan alur kerja Anda. Dari asisten analis hingga penulis kreatif.') }}
                         </p>
                     </div>
                 </div>

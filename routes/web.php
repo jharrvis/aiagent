@@ -10,7 +10,7 @@ Route::get('/', function () {
     return redirect()->route('marketplace');
 });
 
-Route::get('/marketplace', function () {
+Route::get('/asisten-ceo', function () {
     return view('marketplace');
 })->name('marketplace');
 
