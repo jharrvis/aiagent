@@ -17,32 +17,6 @@
                 </div>
             </div>
 
-            <!-- Filters Strip -->
-            <div class="flex flex-wrap items-center gap-3 pb-2 overflow-x-auto no-scrollbar">
-                <button
-                    class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium whitespace-nowrap">
-                    {{ __('Paling Populer') }}
-                </button>
-                <button
-                    class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-medium transition-colors whitespace-nowrap">
-                    {{ __('Terbaru') }}
-                </button>
-                <button
-                    class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-medium transition-colors whitespace-nowrap">
-                    {{ __('Rating Tertinggi') }}
-                </button>
-                <button
-                    class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-medium transition-colors whitespace-nowrap">
-                    {{ __('Gratis') }}
-                </button>
-                <div class="hidden sm:block w-px h-6 bg-slate-300 dark:bg-slate-800 mx-2"></div>
-                <button
-                    class="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-blue-600 text-sm font-medium whitespace-nowrap ml-auto">
-                    <span class="material-symbols-outlined text-[18px]">tune</span>
-                    {{ __('Filter Lanjutan') }}
-                </button>
-            </div>
-
             <!-- Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @forelse($agents ?? \App\Models\Agent::where('is_active', true)->get() as $agent)
@@ -87,14 +61,6 @@
                                         </span>
                                     @endforeach
                                 @endif
-                            </div>
-                        </div>
-
-                        <div
-                            class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                                <span class="material-symbols-outlined text-[16px]">info</span>
-                                <span>{{ __('Tentang Agen') }}</span>
                             </div>
                         </div>
                     </a>
