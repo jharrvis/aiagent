@@ -13,11 +13,13 @@
 
             <!-- Brand Logo -->
             <div class="relative z-10 flex items-center gap-3 text-white">
-                <div
-                    class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary">
-                    <span class="material-symbols-outlined text-2xl">smart_toy</span>
-                </div>
-                <span class="text-xl font-bold tracking-tight">Asisten CEO</span>
+                <a href="{{ route('marketplace') }}" class="flex items-center gap-3 text-white hover:opacity-80 transition-opacity">
+                    <div
+                        class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary">
+                        <span class="material-symbols-outlined text-2xl">smart_toy</span>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">Asisten CEO</span>
+                </a>
             </div>
 
             <!-- Content Overlay -->
@@ -59,10 +61,12 @@
             class="flex-1 flex flex-col justify-center items-center p-6 md:p-12 lg:w-1/2 bg-background-light dark:bg-background-dark overflow-y-auto">
             <!-- Mobile Header Logo -->
             <div class="lg:hidden w-full max-w-md mb-8 flex items-center gap-2">
-                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined text-xl">smart_toy</span>
-                </div>
-                <span class="text-lg font-bold text-slate-900 dark:text-white">Asisten CEO</span>
+                <a href="{{ route('marketplace') }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
+                        <span class="material-symbols-outlined text-xl">smart_toy</span>
+                    </div>
+                    <span class="text-lg font-bold text-slate-900 dark:text-white">Asisten CEO</span>
+                </a>
             </div>
 
             <div class="w-full max-w-md space-y-8">
