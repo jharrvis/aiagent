@@ -17,6 +17,9 @@ class Agent extends Model
         'openrouter_model_id',
         'capabilities',
         'is_active',
+        'can_generate_excel',
+        'quick_questions',
+        'greeting_message',
     ];
 
     protected function casts(): array
@@ -25,7 +28,14 @@ class Agent extends Model
             'temperature' => 'decimal:2',
             'capabilities' => 'array',
             'is_active' => 'boolean',
+            'can_generate_excel' => 'boolean',
+            'quick_questions' => 'array',
         ];
+    }
+
+    public function excelTemplates(): HasMany
+    {
+        return $this->hasMany(ExcelTemplate::class)->where('is_active', true)->orderBy('sort_order');
     }
 
     public function knowledgeSources(): HasMany

@@ -180,6 +180,69 @@
                         </div>
                     </div>
 
+                    <!-- Excel Generation & Quick Questions Section -->
+                    <div class="space-y-6">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+                            <h4 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">table_chart</span>
+                                {{ __('Excel Generation') }}
+                            </h4>
+                            
+                            <!-- Can Generate Excel -->
+                            <div class="mb-4">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" 
+                                        name="can_generate_excel" 
+                                        value="1" 
+                                        {{ old('can_generate_excel', $agent->can_generate_excel ?? false) ? 'checked' : '' }}
+                                        class="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-950">
+                                    <div>
+                                        <span class="block text-sm font-bold text-slate-900 dark:text-white">
+                                            {{ __('Enable Excel Generation') }}
+                                        </span>
+                                        <span class="block text-xs text-slate-500 dark:text-slate-400">
+                                            {{ __('Agent dapat membuat file Excel otomatis berdasarkan conversation') }}
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Quick Questions -->
+                            <div class="mb-4">
+                                <label for="quick_questions" 
+                                    class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
+                                    {{ __('Quick Questions (Clickable Buttons)') }}
+                                </label>
+                                <textarea 
+                                    name="quick_questions" 
+                                    id="quick_questions" 
+                                    rows="5"
+                                    placeholder="{{ __('Enter one question per line') }}&#10;{{ __('Contoh:') }}&#10;{{ __('Hitung Profit First saya') }}&#10;{{ __('Buat Excel lengkap') }}&#10;{{ __('Analisis OPEX') }}"
+                                    class="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none font-mono text-sm">{{ old('quick_questions', is_array($agent->quick_questions ?? []) ? implode("\n", $agent->quick_questions) : '') }}</textarea>
+                                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    {{ __('Satu pertanyaan per baris. Tombol ini akan muncul di chatbox untuk diklik user.') }}
+                                </p>
+                            </div>
+
+                            <!-- Greeting Message -->
+                            <div>
+                                <label for="greeting_message" 
+                                    class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
+                                    {{ __('Greeting Message') }}
+                                </label>
+                                <textarea 
+                                    name="greeting_message" 
+                                    id="greeting_message" 
+                                    rows="3"
+                                    placeholder="{{ __('Pesan sambutan saat user memulai conversation baru...') }}"
+                                    class="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none">{{ old('greeting_message', $agent->greeting_message ?? '') }}</textarea>
+                                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    {{ __('Otomatis ditampilkan saat user memulai conversation baru') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Submit Area -->
                     <div class="pt-8 flex items-center justify-end gap-4">
                         <a href="{{ route('admin.agents.index') }}"

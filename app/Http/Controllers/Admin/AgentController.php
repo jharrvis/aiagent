@@ -35,6 +35,9 @@ class AgentController extends Controller
             'openrouter_model_id' => 'required|string',
             'avatar' => 'nullable|image|max:2048',
             'capabilities' => 'nullable|array',
+            'can_generate_excel' => 'nullable|boolean',
+            'quick_questions' => 'nullable|string',
+            'greeting_message' => 'nullable|string',
         ]);
 
         $data = $request->only([
@@ -43,14 +46,27 @@ class AgentController extends Controller
             'system_prompt',
             'temperature',
             'openrouter_model_id',
-            'capabilities'
+            'capabilities',
+            'can_generate_excel',
+            'greeting_message',
         ]);
+
+        // Parse quick questions
+        if ($request->filled('quick_questions')) {
+            $questions = array_filter(array_map('trim', explode("\n", $request->quick_questions)));
+            $data['quick_questions'] = $questions;
+        }
 
         if ($request->hasFile('avatar')) {
             $data['avatar_path'] = $request->file('avatar')->store('avatars', 'public');
         }
 
         $data['capabilities'] = $request->capabilities ?? [];
+        
+        // Auto-add 'excel' capability if can_generate_excel is enabled
+        if ($request->boolean('can_generate_excel') && !in_array('excel', $data['capabilities'])) {
+            $data['capabilities'][] = 'excel';
+        }
 
         Agent::create($data);
 
@@ -86,6 +102,9 @@ class AgentController extends Controller
             'openrouter_model_id' => 'required|string',
             'avatar' => 'nullable|image|max:2048',
             'capabilities' => 'nullable|array',
+            'can_generate_excel' => 'nullable|boolean',
+            'quick_questions' => 'nullable|string',
+            'greeting_message' => 'nullable|string',
         ]);
 
         $data = $request->only([
@@ -94,8 +113,16 @@ class AgentController extends Controller
             'system_prompt',
             'temperature',
             'openrouter_model_id',
-            'capabilities'
+            'capabilities',
+            'can_generate_excel',
+            'greeting_message',
         ]);
+
+        // Parse quick questions
+        if ($request->filled('quick_questions')) {
+            $questions = array_filter(array_map('trim', explode("\n", $request->quick_questions)));
+            $data['quick_questions'] = $questions;
+        }
 
         if ($request->hasFile('avatar')) {
             if ($agent->avatar_path) {
@@ -105,6 +132,14 @@ class AgentController extends Controller
         }
 
         $data['capabilities'] = $request->capabilities ?? [];
+        
+        // Auto-add 'excel' capability if can_generate_excel is enabled
+        if ($request->boolean('can_generate_excel') && !in_array('excel', $data['capabilities'])) {
+            $data['capabilities'][] = 'excel';
+        } elseif (!$request->boolean('can_generate_excel')) {
+            // Remove 'excel' capability if can_generate_excel is disabled
+            $data['capabilities'] = array_values(array_diff($data['capabilities'], ['excel']));
+        }
 
         $agent->update($data);
 

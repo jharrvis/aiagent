@@ -50,6 +50,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Analytics Routes
     Route::get('analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('analytics/data', [\App\Http\Controllers\Admin\AnalyticsController::class, 'data'])->name('analytics.data');
+
+    // Excel Template Management
+    Route::resource('excel-templates', \App\Http\Controllers\Admin\ExcelTemplateController::class);
+    Route::get('excel-templates/{excelTemplate}/download', [\App\Http\Controllers\Admin\ExcelTemplateController::class, 'download'])
+        ->name('excel-templates.download');
 });
 
 require __DIR__ . '/auth.php';

@@ -173,9 +173,7 @@
                             </div>
                             <div
                                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl rounded-tl-none text-slate-700 dark:text-slate-200 text-sm leading-relaxed shadow-sm">
-                                <p>{{ __('Halo! Saya adalah') }} {{ $agent->name }}.
-                                    {{ __('Ada yang bisa saya bantu hari ini?') }}
-                                </p>
+                                <p>{{ $agent->greeting_message ?? ('Halo! Saya adalah ' . $agent->name . '. Ada yang bisa saya bantu hari ini?') }}</p>
                             </div>
                         </div>
                     </div>
@@ -238,7 +236,22 @@
                         </div>
                     </div>
                 </form>
-                <div class="text-center mt-2">
+                
+                <!-- Quick Questions Buttons -->
+                @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                    <div class="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($agent->quick_questions as $question)
+                                <button onclick="sendQuickQuestion({{ json_encode($question) }})"
+                                    class="px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg transition-all border border-emerald-200 dark:border-emerald-700">
+                                    {{ $question }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+                
+                <div class="text-center mt-2 pb-2">
                     <p class="text-[10px] text-slate-500">
                         {{ __('AI dapat membuat kesalahan. Pertimbangkan untuk memeriksa informasi penting.') }}
                     </p>
@@ -246,6 +259,16 @@
             </div>
         </main>
     </div>
+
+    <script>
+        function sendQuickQuestion(question) {
+            const messageInput = document.getElementById('message-input');
+            messageInput.value = question;
+            messageInput.style.height = 'auto';
+            messageInput.style.height = messageInput.scrollHeight + 'px';
+            document.getElementById('chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+    </script>
 
     <style>
         .markdown-content h1,

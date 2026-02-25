@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Manage Agents -->
                 <a href="{{ route('admin.agents.index') }}"
                     class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-all hover:-translate-y-1">
@@ -107,45 +107,43 @@
                     </div>
                 </a>
 
-                <!-- Analytics -->
-                <a href="{{ route('admin.analytics.index') }}"
+                <!-- Excel Templates -->
+                <a href="{{ route('admin.excel-templates.index') }}"
                     class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-all hover:-translate-y-1">
                     <div class="flex flex-col">
                         <div
                             class="size-14 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 transition-colors group-hover:bg-amber-600 group-hover:text-white">
-                            <span class="material-symbols-outlined text-[32px]">analytics</span>
+                            <span class="material-symbols-outlined text-[32px]">table_chart</span>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{{ __('Analitik & Laporan') }}
+                            <h3
+                                class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                                {{ __('Excel Templates') }}
                             </h3>
                             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">
-                                {{ __('Lihat statistik penggunaan dan efisiensi agen AI secara real-time.') }}
+                                {{ __('Upload dan kelola template Excel untuk generate laporan otomatis.') }}
                             </p>
                         </div>
                     </div>
                 </a>
 
-                <!-- Settings -->
-                <div
-                    class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 opacity-75">
+                <!-- Analytics -->
+                <a href="{{ route('admin.analytics.index') }}"
+                    class="group relative bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl sm:rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-all hover:-translate-y-1">
                     <div class="flex flex-col">
                         <div
-                            class="size-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 mb-4">
-                            <span class="material-symbols-outlined text-[32px]">settings</span>
+                            class="size-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-4 transition-colors group-hover:bg-purple-600 group-hover:text-white">
+                            <span class="material-symbols-outlined text-[32px]">analytics</span>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('Pengaturan Sistem') }}
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{{ __('Analitik & Laporan') }}
                             </h3>
                             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">
-                                {{ __('Konfigurasi kunci API, model penyedia, dan preferensi global.') }}
+                                {{ __('Pantau penggunaan API dan aktivitas model AI secara real-time.') }}
                             </p>
                         </div>
                     </div>
-                    <div class="absolute top-4 right-4">
-                        <span
-                            class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 rounded uppercase tracking-wider">{{ __('Segera Hadir') }}</span>
-                    </div>
-                </div>
+                </a>
             </div>
         </div>
     </div>

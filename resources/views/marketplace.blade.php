@@ -77,7 +77,7 @@
                                     {{ $agent->name }}
                                 </h3>
                                 <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">
-                                    {{ $agent->system_prompt ?: __('Siap membantu tugas Anda.') }}
+                                    {{ $agent->description ?: __('Siap membantu tugas Anda.') }}
                                 </p>
                             </div>
 
