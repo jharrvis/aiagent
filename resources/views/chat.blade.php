@@ -223,13 +223,31 @@
             <div class="p-4 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
                 <form id="chat-form" class="relative flex flex-col gap-2">
 
-                    <!-- Quick Questions Buttons -->
+                    <!-- Quick Questions Buttons (Collapsible) -->
                     @if($agent->quick_questions && count($agent->quick_questions) > 0)
-                        <div class="px-1 py-2">
-                            <div class="flex flex-wrap gap-2">
+                        <div x-data="{ quickQuestionsOpen: true }" class="px-1">
+                            <!-- Toggle Button -->
+                            <button type="button" @click="quickQuestionsOpen = !quickQuestionsOpen"
+                                class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors mb-2">
+                                <span class="material-symbols-outlined text-[16px]"
+                                    :class="{ 'rotate-90': quickQuestionsOpen }"
+                                    x-text="quickQuestionsOpen ? 'expand_more' : 'chevron_right'"></span>
+                                {{ __('Pertanyaan Cepat') }}
+                                <span class="text-[10px] text-slate-400">({{ count($agent->quick_questions) }})</span>
+                            </button>
+
+                            <!-- Collapsible Content -->
+                            <div x-show="quickQuestionsOpen"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-2"
+                                x-transition:enter-end="opacity-0 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-0 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-2"
+                                class="flex flex-wrap gap-2 pb-2">
                                 @foreach($agent->quick_questions as $question)
-                                    <button onclick="sendQuickQuestion({{ json_encode($question) }})"
-                                        class="px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg transition-all border border-emerald-200 dark:border-emerald-700">
+                                    <button type="button" onclick="sendQuickQuestion({{ json_encode($question) }})"
+                                        class="px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg transition-all border border-emerald-200 dark:border-emerald-700 hover:shadow-sm">
                                         {{ $question }}
                                     </button>
                                 @endforeach
