@@ -6,114 +6,145 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
     <div class="flex-1 flex overflow-hidden h-[calc(100vh-65px)]">
-        <!-- Sidebar Kiri: Info Agen -->
+        <!-- Sidebar Kiri: Info Agen (Desktop only) -->
         <aside
-            class="w-72 hidden lg:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0">
-            <div class="p-6 border-b border-slate-800 flex flex-col items-center text-center">
+            class="w-64 hidden lg:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0">
+            <!-- Agent Info -->
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
                 <div
-                    class="h-20 w-20 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 mb-4 shadow-xl">
+                    class="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 shrink-0">
                     @if($agent->avatar_path)
-                        <img src="{{ Storage::disk('public')->url($agent->avatar_path) }}"
-                            class="w-full h-full rounded-full object-cover">
+                        <img src="{{ Storage::url($agent->avatar_path) }}" class="w-full h-full rounded-xl object-cover">
                     @else
-                        <span class="material-symbols-outlined text-[40px]">smart_toy</span>
+                        <span class="material-symbols-outlined text-[22px]">smart_toy</span>
                     @endif
                 </div>
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ $agent->name }}</h3>
-            </div>
-            <div class="p-6 flex-1 overflow-y-auto">
-                <div class="mb-6">
-                    <h4 class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
-                        {{ __('Tentang') }}
-                    </h4>
-                    <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        {{ $agent->description ?: __('Agen AI yang siap membantu berbagai tugas Anda dengan cerdik dan cepat.') }}
-                    </p>
-                </div>
-                <div class="mb-6">
-                    <h4 class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
-                        {{ __('Kemampuan') }}
-                    </h4>
-                    <div class="flex flex-wrap gap-2">
-                        @forelse($agent->capabilities ?? ['text'] as $cap)
-                            <span
-                                class="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase">
-                                {{ ucfirst(str_replace('_', ' ', $cap)) }}
-                            </span>
-                        @empty
-                            <span class="text-xs text-slate-500 italic">{{ __('Tidak ada kemampuan khusus') }}</span>
-                        @endforelse
+                <div class="min-w-0">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $agent->name }}</h3>
+                    <div class="flex items-center gap-1 mt-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        <span class="text-xs text-slate-500">Aktif</span>
                     </div>
                 </div>
             </div>
-            <div class="p-4 border-t border-slate-800">
+
+            <div class="p-4 flex-1 overflow-y-auto space-y-4">
+                <div>
+                    <h4 class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+                        Tentang</h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        {{ $agent->description ?: 'Agen AI yang siap membantu berbagai tugas Anda.' }}
+                    </p>
+                </div>
+
+                @if(!empty($agent->capabilities))
+                    <div>
+                        <h4 class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+                            Kemampuan</h4>
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($agent->capabilities as $cap)
+                                <span
+                                    class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase">
+                                    {{ ucfirst(str_replace('_', ' ', $cap)) }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <div class="p-3 border-t border-slate-200 dark:border-slate-800">
                 <a href="{{ route('marketplace') }}"
-                    class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium">
-                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                    {{ __('Kembali ke Marketplace') }}
+                    class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs font-medium">
+                    <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                    Kembali ke Marketplace
                 </a>
             </div>
         </aside>
 
+
         <!-- Area Chat Utama -->
-        <main class="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative">
+        <main class="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative min-w-0"
+            x-data="{ showAgentInfo: false }">
+
             <!-- Header Chat -->
             <header
-                class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
-                <div class="flex items-center gap-3">
+                class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 shrink-0">
+                <button class="flex items-center gap-3 min-w-0 text-left" @click="showAgentInfo = !showAgentInfo">
                     <div
-                        class="md:hidden h-8 w-8 rounded-full bg-blue-900/20 flex items-center justify-center text-blue-400 border border-blue-500/20">
-                        <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                        class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 border border-blue-200 dark:border-blue-500/20 shrink-0">
+                        @if($agent->avatar_path)
+                            <img src="{{ Storage::url($agent->avatar_path) }}"
+                                class="w-full h-full rounded-lg object-cover">
+                        @else
+                            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                        @endif
                     </div>
-                    <div>
-                        <h2 class="text-base font-bold text-slate-900 dark:text-white leading-tight">{{ $agent->name }}
+                    <div class="min-w-0">
+                        <h2 class="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">
+                            {{ $agent->name }}
                         </h2>
                         <div class="flex items-center gap-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            <span
-                                class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ __('Aktif Sekarang') }}</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Aktif Sekarang</span>
                         </div>
                     </div>
-                </div>
-                <div class="flex items-center gap-2 relative" x-data="{ open: false }">
-                    <!-- Tombol Download -->
+                    <span class="material-symbols-outlined text-[16px] text-slate-400 lg:hidden ml-1"
+                        :class="showAgentInfo ? 'rotate-180' : ''">expand_more</span>
+                </button>
+
+                <div class="flex items-center gap-1 relative" x-data="{ open: false }">
                     <button id="download-chat-btn" onclick="downloadChat()"
                         class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                        title="{{ __('Unduh Chat') }}">
+                        title="Unduh Chat">
                         <span class="material-symbols-outlined text-[20px]">download</span>
                     </button>
-
-                    <!-- Tombol Opsi Titik Tiga -->
                     <button @click="open = !open" @click.outside="open = false"
-                        class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                        title="{{ __('Pengaturan') }}">
+                        class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                         <span class="material-symbols-outlined text-[20px]">more_vert</span>
                     </button>
-
-                    <!-- Dropdown Menu -->
                     <div x-show="open" x-transition.origin.top.right
                         class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden z-[100]"
-                        style="display: none;">
+                        style="display:none">
                         <a href="{{ route('agents.chat', $agent->id) }}"
                             class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                             <span class="material-symbols-outlined text-[18px]">add_comment</span>
-                            {{ __('Mulai Chat Baru') }}
+                            Mulai Chat Baru
                         </a>
-
                         @if(isset($conversation) && $conversation->id)
                             <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
                             <button onclick="deleteChat({{ $conversation->id }})"
                                 class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
-                                {{ __('Hapus Chat') }}
+                                Hapus Chat
                             </button>
                         @endif
                     </div>
                 </div>
             </header>
 
+            <!-- Mobile Agent Info Panel (collapsible) -->
+            <div x-show="showAgentInfo" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
+                class="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 z-10 shrink-0"
+                style="display:none">
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
+                    {{ $agent->description ?: 'Agen AI yang siap membantu berbagai tugas Anda.' }}
+                </p>
+                @if(!empty($agent->capabilities))
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach($agent->capabilities as $cap)
+                            <span
+                                class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 uppercase">{{ ucfirst(str_replace('_', ' ', $cap)) }}</span>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
             <!-- Area Pesan -->
-            <div id="messages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+            <div id="messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                 @if(isset($conversation) && $conversation->messages->count() > 0)
                     @foreach($conversation->messages as $msg)
                         @php $isUser = $msg->role === 'user'; @endphp
@@ -220,103 +251,109 @@
             </div>
 
             <!-- Area Input -->
-            <div class="p-4 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-                <form id="chat-form" class="relative flex flex-col gap-2">
+            <div class="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
 
-                    <!-- Quick Questions Buttons (Collapsible) -->
-                    @if($agent->quick_questions && count($agent->quick_questions) > 0)
-                        <div x-data="{ quickQuestionsOpen: true }" class="px-1">
-                            <!-- Toggle Button -->
-                            <button type="button" @click="quickQuestionsOpen = !quickQuestionsOpen"
-                                class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors mb-2">
-                                <span class="material-symbols-outlined text-[16px]"
-                                    :class="{ 'rotate-90': quickQuestionsOpen }"
-                                    x-text="quickQuestionsOpen ? 'expand_more' : 'chevron_right'"></span>
-                                {{ __('Pertanyaan Cepat') }}
-                                <span class="text-[10px] text-slate-400">({{ count($agent->quick_questions) }})</span>
-                            </button>
-
-                            <!-- Collapsible Content -->
-                            <div x-show="quickQuestionsOpen"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 -translate-y-2"
-                                x-transition:enter-end="opacity-0 translate-y-0"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-0 translate-y-0"
-                                x-transition:leave-end="opacity-0 -translate-y-2"
-                                class="flex flex-wrap gap-2 pb-2">
+                <!-- Quick Questions (scrollable chips, shown only when no messages) -->
+                @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                    <div id="quick-questions-bar"
+                         class="{{ (!isset($conversation) || $conversation->messages->count() === 0) ? '' : 'hidden' }} px-4 pt-3 pb-0 max-w-full">
+                        <!-- Wrapper dengan mask transparan di tepi supaya terlihat bisa di-scroll -->
+                        <div class="relative w-full">
+                            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1 scroll-smooth" style="scrollbar-width:none">
                                 @foreach($agent->quick_questions as $question)
                                     <button type="button" onclick="sendQuickQuestion({{ json_encode($question) }})"
-                                        class="px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg transition-all border border-emerald-200 dark:border-emerald-700 hover:shadow-sm">
+                                        class="flex-shrink-0 max-w-[280px] sm:max-w-md text-left truncate px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full transition-all border border-blue-200 dark:border-blue-700">
                                         {{ $question }}
                                     </button>
                                 @endforeach
                             </div>
                         </div>
-                    @endif
+                    </div>
+                @endif
 
-                    @if($agent->hasCapability('image'))
-                        <div
-                            class="flex items-center gap-4 px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 w-fit">
-                            <label class="flex items-center gap-2 cursor-pointer group">
+                <form id="chat-form" class="p-3 flex flex-col gap-2">
+
+                    <div class="flex items-center gap-3 px-1 relative">
+                        <!-- Toggle Quick Questions Button -->
+                        @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                            <button type="button" onclick="toggleQuickQuestions()" class="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg shrink-0" title="Tampilkan Pertanyaan Cepat">
+                                <span class="material-symbols-outlined text-[16px]">tips_and_updates</span>
+                                <span class="hidden sm:inline">Ide</span>
+                            </button>
+                        @endif
+
+                        @if($agent->hasCapability('image'))
+                            <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 shrink-0 mx-1"></div>
+                            <label class="flex items-center gap-2 cursor-pointer group shrink-0">
                                 <input type="checkbox" id="image-mode-toggle"
                                     class="rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500 bg-white dark:bg-slate-900 transition-all cursor-pointer">
-                                <span
-                                    class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    <span class="material-symbols-outlined text-[18px] text-blue-500">brush</span>
-                                    {{ __('Buat Gambar') }}
+                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">brush</span>
+                                    Buat Gambar
                                 </span>
                             </label>
-
-                            <div id="image-options"
-                                class="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4 hidden">
-                                <label for="image-size"
-                                    class="text-xs text-slate-500 dark:text-slate-400 font-semibold">{{ __('Rasio:') }}</label>
-                                <select id="image-size"
-                                    class="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 py-1 pl-2 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer outline-none font-medium">
-                                    <option value="1:1">{{ __('Square (1:1)') }}</option>
-                                    <option value="16:9">{{ __('Landscape (16:9)') }}</option>
-                                    <option value="9:16">{{ __('Portrait (9:16)') }}</option>
+                            <div id="image-options" class="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-3 hidden shrink-0">
+                                <label for="image-size" class="text-xs text-slate-500 font-semibold hidden sm:inline">Rasio:</label>
+                                <select id="image-size" class="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 py-1 pl-2 pr-6 focus:ring-2 focus:ring-blue-500 outline-none font-medium">
+                                    <option value="1:1">Square (1:1)</option>
+                                    <option value="16:9">Landscape (16:9)</option>
+                                    <option value="9:16">Portrait (9:16)</option>
                                 </select>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
 
+                    <!-- Input Row -->
                     <div
-                        class="flex items-end gap-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all shadow-sm">
+                        class="flex items-end gap-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
                         @csrf
                         <input type="hidden" name="conversation_id" id="conversation_id" value="">
 
                         <textarea id="message-input" name="content"
-                            class="w-full bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 resize-none py-2.5 max-h-32"
-                            placeholder="{{ __('Ketik pesan untuk') }} {{ $agent->name }}..." rows="1"
-                            required></textarea>
+                            class="w-full bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 resize-none py-1.5 text-sm max-h-28"
+                            placeholder="Ketik pesan untuk {{ $agent->name }}..." rows="1" required></textarea>
 
-                        <div class="flex items-center gap-1 shrink-0 pb-0.5">
-                            <button type="submit" id="send-btn"
-                                class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center justify-center"
-                                title="{{ __('Kirim Pesan') }}">
-                                <span class="material-symbols-outlined">send</span>
-                            </button>
-                        </div>
+                        <button type="submit" id="send-btn"
+                            class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm flex items-center justify-center shrink-0 w-10 h-10 relative overflow-hidden group"
+                            title="Kirim Pesan">
+                            <!-- Send Icon (Default) -->
+                            <span class="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover:scale-110" id="send-icon">send</span>
+                            <!-- Stop Icon (Hidden initially) -->
+                            <span class="material-symbols-outlined text-[20px] absolute inset-0 m-auto flex items-center justify-center transition-transform duration-200 scale-0 opacity-0 bg-red-500 w-full h-full" id="stop-icon" title="Hentikan Respon">stop</span>
+                        </button>
                     </div>
                 </form>
 
-                <div class="text-center mt-2 pb-2">
-                    <p class="text-[10px] text-slate-500">
-                        {{ __('AI dapat membuat kesalahan. Pertimbangkan untuk memeriksa informasi penting.') }}
-                    </p>
-                </div>
+                <p class="text-center text-[10px] text-slate-400 pb-2">
+                    AI dapat membuat kesalahan. Pertimbangkan untuk memeriksa informasi penting.
+                </p>
             </div>
         </main>
     </div>
 
     <script>
+        function toggleQuickQuestions() {
+            const qqBar = document.getElementById('quick-questions-bar');
+            if (qqBar) {
+                qqBar.classList.toggle('hidden');
+                // Optional: scroll slightly to reveal them if input is at the bottom
+                setTimeout(() => {
+                    const messagesEl = document.getElementById('messages');
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                }, 50);
+            }
+        }
+
         function sendQuickQuestion(question) {
             const messageInput = document.getElementById('message-input');
             messageInput.value = question;
             messageInput.style.height = 'auto';
             messageInput.style.height = messageInput.scrollHeight + 'px';
+            
+            // Auto hide again after sending
+            const qqBar = document.getElementById('quick-questions-bar');
+            if (qqBar) qqBar.classList.add('hidden');
+            
             document.getElementById('chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
         }
     </script>
@@ -596,8 +633,44 @@
             return marked.parse(text);
         }
 
+        let currentAbortController = null;
+
+        function setGeneratingState(isGenerating) {
+            const sendIcon = document.getElementById('send-icon');
+            const stopIcon = document.getElementById('stop-icon');
+            const sendBtn = document.getElementById('send-btn');
+            
+            if (isGenerating) {
+                sendBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                sendBtn.classList.add('bg-red-500', 'hover:bg-red-600', 'animate-pulse');
+                sendIcon.classList.replace('scale-100', 'scale-0');
+                sendIcon.classList.add('opacity-0');
+                stopIcon.classList.replace('scale-0', 'scale-100');
+                stopIcon.classList.remove('opacity-0');
+            } else {
+                sendBtn.classList.remove('bg-red-500', 'hover:bg-red-600', 'animate-pulse');
+                sendBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                sendIcon.classList.replace('scale-0', 'scale-100');
+                sendIcon.classList.remove('opacity-0');
+                stopIcon.classList.replace('scale-100', 'scale-0');
+                stopIcon.classList.add('opacity-0');
+            }
+        }
+
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // If we are currently generating, act as a Stop button
+            if (currentAbortController) {
+                currentAbortController.abort();
+                currentAbortController = null;
+                removeTypingIndicator();
+                setGeneratingState(false);
+                addMessage('assistant', '_{{ __("Respon dibatalkan oleh pengguna.") }}_');
+                messageInput.disabled = false;
+                messageInput.focus();
+                return;
+            }
 
             const content = messageInput.value.trim();
             if (!content) return;
@@ -606,21 +679,24 @@
             addMessage('user', content);
             messageInput.value = '';
             messageInput.style.height = 'auto';
-            sendBtn.disabled = true;
             messageInput.disabled = true;
+            
+            // Hide quick questions automatically
+            const qqBar = document.getElementById('quick-questions-bar');
+            if (qqBar) qqBar.classList.add('hidden');
 
             if (!conversationId) {
                 try {
                     await createConversation();
                 } catch (error) {
                     addMessage('assistant', '{{ __("Gagal membuat percakapan. Silakan segarkan halaman.") }}');
-                    sendBtn.disabled = false;
                     messageInput.disabled = false;
                     return;
                 }
             }
 
             addTypingIndicator();
+            setGeneratingState(true);
 
             let requestBody = {
                 conversation_id: conversationId,
@@ -634,6 +710,8 @@
                 requestBody.image_size = imageSize;
             }
 
+            currentAbortController = new AbortController();
+
             try {
                 const response = await fetch('{{ route("messages.store") }}', {
                     method: 'POST',
@@ -642,7 +720,8 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify(requestBody),
+                    signal: currentAbortController.signal
                 });
 
                 removeTypingIndicator();
@@ -660,12 +739,18 @@
                 }
             } catch (error) {
                 removeTypingIndicator();
-                addMessage('assistant', '{{ __("Maaf, terjadi kesalahan jaringan. Periksa koneksi internet Anda.") }}');
+                if (error.name === 'AbortError') {
+                    // Handled synchronously by the abort button click
+                    console.log("Fetch aborted");
+                } else {
+                    addMessage('assistant', '{{ __("Maaf, terjadi kesalahan jaringan. Periksa koneksi internet Anda.") }}');
+                }
+            } finally {
+                currentAbortController = null;
+                setGeneratingState(false);
+                messageInput.disabled = false;
+                messageInput.focus();
             }
-
-            sendBtn.disabled = false;
-            messageInput.disabled = false;
-            messageInput.focus();
         });
 
         // Allow Shift+Enter for new line, Enter for submit
@@ -842,12 +927,27 @@
             }
         }
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeImageModal(); });
-        async function copyTextToClipboard(btn, text) {
-            try {
-                // Determine whether to copy raw content or parsed text. 
-                // We're passing the raw markdown content.
-                await navigator.clipboard.writeText(text);
+        function copyTextToClipboard(btn, text) {
+            // Use Clipboard API if available (HTTPS), otherwise fall back to execCommand (HTTP/local)
+            const doCopy = () => {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text);
+                }
+                // Fallback for non-secure contexts (HTTP)
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return Promise.resolve();
+            };
+
+            doCopy().then(() => {
                 const icon = btn.querySelector('span');
+                if (!icon) return;
                 const origText = icon.innerText;
                 icon.innerText = 'check';
                 btn.classList.add('!text-green-500');
@@ -855,9 +955,7 @@
                     icon.innerText = origText;
                     btn.classList.remove('!text-green-500');
                 }, 2000);
-            } catch (e) {
-                console.error('Copy failed:', e);
-            }
+            }).catch(e => console.error('Copy failed:', e));
         }
     </script>
 </x-app-layout>
