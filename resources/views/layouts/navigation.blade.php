@@ -95,11 +95,16 @@
                         </x-dropdown>
                     </div>
                 @else
-                    <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4">
-                        <a href="{{ route('login') }}" class="text-sm text-gray-700 dark:text-slate-400 underline">Masuk</a>
+                    <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-3">
+                        <a href="{{ route('login') }}"
+                            class="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                            {{ __('Masuk') }}
+                        </a>
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}"
-                                class="text-sm text-gray-700 dark:text-slate-400 underline">Daftar</a>
+                                class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm">
+                                {{ __('Daftar') }}
+                            </a>
                         @endif
                     </div>
                 @endauth
@@ -177,14 +182,16 @@
                 </div>
             @else
                 <div class="pt-4 pb-1 border-t border-gray-200 dark:border-slate-800">
-                    <div class="mt-3 space-y-1">
-                        <x-responsive-nav-link :href="route('login')" class="dark:text-slate-300">
+                    <div class="mt-3 space-y-3 px-4">
+                        <a href="{{ route('login') }}"
+                            class="block w-full text-center px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
                             {{ __('Masuk') }}
-                        </x-responsive-nav-link>
+                        </a>
                         @if (Route::has('register'))
-                            <x-responsive-nav-link :href="route('register')" class="dark:text-slate-300">
+                            <a href="{{ route('register') }}"
+                                class="block w-full text-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm">
                                 {{ __('Daftar') }}
-                            </x-responsive-nav-link>
+                            </a>
                         @endif
                     </div>
                 </div>
