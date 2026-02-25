@@ -19,8 +19,7 @@
                         <span class="material-symbols-outlined text-[40px]">smart_toy</span>
                     @endif
                 </div>
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">{{ $agent->name }}</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $agent->openrouter_model_id }}</p>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ $agent->name }}</h3>
             </div>
             <div class="p-6 flex-1 overflow-y-auto">
                 <div class="mb-6">
@@ -76,17 +75,40 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button
+                <div class="flex items-center gap-2 relative" x-data="{ open: false }">
+                    <!-- Tombol Download -->
+                    <button id="download-chat-btn" onclick="downloadChat()"
                         class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                         title="{{ __('Unduh Chat') }}">
                         <span class="material-symbols-outlined text-[20px]">download</span>
                     </button>
-                    <button
+
+                    <!-- Tombol Opsi Titik Tiga -->
+                    <button @click="open = !open" @click.outside="open = false"
                         class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                         title="{{ __('Pengaturan') }}">
                         <span class="material-symbols-outlined text-[20px]">more_vert</span>
                     </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="open" x-transition.origin.top.right
+                        class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden z-[100]"
+                        style="display: none;">
+                        <a href="{{ route('agents.chat', $agent->id) }}"
+                            class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">add_comment</span>
+                            {{ __('Mulai Chat Baru') }}
+                        </a>
+
+                        @if(isset($conversation) && $conversation->id)
+                            <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+                            <button onclick="deleteChat({{ $conversation->id }})"
+                                class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                                {{ __('Hapus Chat') }}
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </header>
 
@@ -112,28 +134,33 @@
                                     @if($isUser)
                                         <div class="group/user flex items-start gap-4">
                                             <p class="flex-1 whitespace-pre-wrap break-words">{!! nl2br(e($msg->content)) !!}</p>
-                                            <button onclick='copyTextToClipboard(this, {!! json_encode($msg->content) !!})' 
-                                                class="opacity-0 group-hover/user:opacity-100 p-1 -m-1 text-white/70 hover:text-white transition-opacity shrink-0" title="Copy Prompt">
+                                            <button data-content="{{ $msg->content }}"
+                                                onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
+                                                class="opacity-0 group-hover/user:opacity-100 p-1 -m-1 text-white/70 hover:text-white transition-opacity shrink-0"
+                                                title="Copy Prompt">
                                                 <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                             </button>
                                         </div>
                                     @else
                                         <div class="group/bot flex items-start gap-4">
                                             <div class="flex-1 overflow-x-auto">
-                                                <div class="markdown-content" data-raw-content="{{ base64_encode($msg->content) }}"></div>
+                                                <div class="markdown-content" data-raw-content="{{ base64_encode($msg->content) }}">
+                                                </div>
                                                 @if(isset($msg->metadata['image_url']))
                                                     <div class="mt-3 group/img relative inline-block max-w-full">
                                                         <img src="{{ $msg->metadata['image_url'] }}"
                                                             class="max-w-full rounded-xl shadow-lg cursor-zoom-in block"
-                                                            alt="Generated image"
-                                                            onclick="openImageModal(this.src)">
-                                                        <div class="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                            alt="Generated image" onclick="openImageModal(this.src)">
+                                                        <div
+                                                            class="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
                                                             <button onclick="copyImageToClipboard('{{ $msg->metadata['image_url'] }}')"
-                                                                class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm" title="Copy">
+                                                                class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm"
+                                                                title="Copy">
                                                                 <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                                             </button>
                                                             <a href="{{ $msg->metadata['image_url'] }}" download="ai_image.png"
-                                                                class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm" title="Download">
+                                                                class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm"
+                                                                title="Download">
                                                                 <span class="material-symbols-outlined text-[16px]">download</span>
                                                             </a>
                                                         </div>
@@ -148,9 +175,20 @@
                                                         </a>
                                                     </div>
                                                 @endif
+                                                @if(isset($msg->metadata['excel_path']))
+                                                    <div class="mt-3">
+                                                        <a href="{{ route('messages.excel', ['message' => $msg->id]) }}"
+                                                            class="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-200 dark:border-emerald-700 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors gap-1">
+                                                            <span class="material-symbols-outlined text-[16px]">table_view</span>
+                                                            {{ __('Unduh File Excel') }}
+                                                        </a>
+                                                    </div>
+                                                @endif
                                             </div>
-                                            <button onclick='copyTextToClipboard(this, {!! json_encode($msg->content) !!})' 
-                                                class="opacity-0 group-hover/bot:opacity-100 p-1 -m-1 text-slate-400 hover:text-blue-500 transition-opacity shrink-0" title="Copy Response">
+                                            <button data-content="{{ $msg->content }}"
+                                                onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
+                                                class="opacity-0 group-hover/bot:opacity-100 p-1 -m-1 text-slate-400 hover:text-blue-500 transition-opacity shrink-0"
+                                                title="Copy Response">
                                                 <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                             </button>
                                         </div>
@@ -173,7 +211,8 @@
                             </div>
                             <div
                                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl rounded-tl-none text-slate-700 dark:text-slate-200 text-sm leading-relaxed shadow-sm">
-                                <p>{{ $agent->greeting_message ?? ('Halo! Saya adalah ' . $agent->name . '. Ada yang bisa saya bantu hari ini?') }}</p>
+                                <p>{{ $agent->greeting_message ?? ('Halo! Saya adalah ' . $agent->name . '. Ada yang bisa saya bantu hari ini?') }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -183,6 +222,20 @@
             <!-- Area Input -->
             <div class="p-4 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
                 <form id="chat-form" class="relative flex flex-col gap-2">
+
+                    <!-- Quick Questions Buttons -->
+                    @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                        <div class="px-1 py-2">
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($agent->quick_questions as $question)
+                                    <button onclick="sendQuickQuestion({{ json_encode($question) }})"
+                                        class="px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg transition-all border border-emerald-200 dark:border-emerald-700">
+                                        {{ $question }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
 
                     @if($agent->hasCapability('image'))
                         <div
@@ -216,12 +269,6 @@
                         @csrf
                         <input type="hidden" name="conversation_id" id="conversation_id" value="">
 
-                        <button type="button"
-                            class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shrink-0"
-                            title="{{ __('Lampirkan File') }}">
-                            <span class="material-symbols-outlined">attach_file</span>
-                        </button>
-
                         <textarea id="message-input" name="content"
                             class="w-full bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 resize-none py-2.5 max-h-32"
                             placeholder="{{ __('Ketik pesan untuk') }} {{ $agent->name }}..." rows="1"
@@ -236,21 +283,7 @@
                         </div>
                     </div>
                 </form>
-                
-                <!-- Quick Questions Buttons -->
-                @if($agent->quick_questions && count($agent->quick_questions) > 0)
-                    <div class="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($agent->quick_questions as $question)
-                                <button onclick="sendQuickQuestion({{ json_encode($question) }})"
-                                    class="px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg transition-all border border-emerald-200 dark:border-emerald-700">
-                                    {{ $question }}
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-                
+
                 <div class="text-center mt-2 pb-2">
                     <p class="text-[10px] text-slate-500">
                         {{ __('AI dapat membuat kesalahan. Pertimbangkan untuk memeriksa informasi penting.') }}
@@ -429,7 +462,7 @@
                         </div>
                         <div class="bg-blue-600 p-4 rounded-xl rounded-tr-none text-white text-sm leading-relaxed shadow-sm group/user flex items-start gap-3">
                             <p class="flex-1 whitespace-pre-wrap break-words">${escapeHtml(content)}</p>
-                            <button onclick='copyTextToClipboard(this, ${JSON.stringify(content)})'
+                            <button data-content="${escapeHtml(content)}" onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
                                 class="opacity-0 group-hover/user:opacity-100 p-1 -m-1 text-white/70 hover:text-white transition-opacity shrink-0" title="Copy Prompt">
                                 <span class="material-symbols-outlined text-[16px]">content_copy</span>
                             </button>
@@ -465,6 +498,15 @@
                     </div>`;
                 }
 
+                if (metadata.excel_path) {
+                    contentHtml += `<div class="mt-3">
+                        <a href="/messages/${metadata.message_id}/excel" class="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-200 dark:border-emerald-700 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors gap-1">
+                            <span class="material-symbols-outlined text-[16px]">table_view</span>
+                            {{ __('Unduh File Excel') }}
+                        </a>
+                    </div>`;
+                }
+
                 messageDiv.innerHTML = `
                     <div class="h-8 w-8 rounded-full bg-blue-900/20 flex items-center justify-center shrink-0 text-blue-400 border border-blue-500/20 mt-1">
                         <span class="material-symbols-outlined text-[18px]">smart_toy</span>
@@ -479,7 +521,7 @@
                                 <div class="flex-1 overflow-x-auto">
                                     ${contentHtml}
                                 </div>
-                                <button onclick='copyTextToClipboard(this, ${JSON.stringify(content)})'
+                                <button data-content="${escapeHtml(content)}" onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
                                     class="opacity-0 group-hover/bot:opacity-100 p-1 -m-1 text-slate-400 hover:text-blue-500 transition-opacity shrink-0" title="Copy Response">
                                     <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                 </button>
@@ -616,9 +658,82 @@
             }
         });
 
+        // Delete chat functionality
+        async function deleteChat(convId) {
+            if (!confirm('{{ __("Apakah Anda yakin ingin menghapus percakapan ini secara permanen?") }}')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/conversations/${convId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok || response.redirected) {
+                    window.location.href = '{{ route("agents.chat", $agent->id) }}';
+                } else {
+                    alert('{{ __("Gagal menghapus percakapan.") }}');
+                }
+            } catch (error) {
+                alert('{{ __("Terjadi kesalahan jaringan saat menghapus percakapan.") }}');
+            }
+        }
+
+        // Download chat functionality
+        function downloadChat() {
+            if (!conversationId) {
+                alert('{{ __("Belum ada percakapan untuk diunduh.") }}');
+                return;
+            }
+
+            let chatText = `# Percakapan dengan {{ $agent->name }}\nTanggal: ${new Date().toLocaleDateString('id-ID')}\n\n`;
+
+            // Extract messages from DOM
+            const messageNodes = messagesEl.children;
+            let hasMessages = false;
+
+            // Skip the first message if it's the welcome message (doesn't have a copy button)
+            for (let i = 0; i < messageNodes.length; i++) {
+                const node = messageNodes[i];
+                if (node.id === 'typing-indicator') continue;
+
+                const copyBtn = node.querySelector('[data-content]');
+                if (!copyBtn) continue; // Skip welcome message
+
+                hasMessages = true;
+                const isUser = node.querySelector('.bg-blue-600') !== null; // Check if user bubble
+                const role = isUser ? 'Anda' : '{{ $agent->name }}';
+                const content = copyBtn.getAttribute('data-content');
+                const timeSpan = node.querySelector('span.text-xs.text-slate-500');
+                const time = timeSpan ? timeSpan.innerText : '';
+
+                chatText += `### ${role} ${time ? '(' + time + ')' : ''}\n${content}\n\n---\n\n`;
+            }
+
+            if (!hasMessages) {
+                alert('{{ __("Belum ada riwayat obrolan untuk diunduh.") }}');
+                return;
+            }
+
+            // Create blob and download
+            const blob = new Blob([chatText], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Chat_{{ $agent->name }}_${new Date().toISOString().split('T')[0]}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         // Parse <think> tags for UI
         function parseReasoningTags(text) {
-            return text.replace(/<think>([\s\S]*?)<\/think>/g, function(match, inner) {
+            return text.replace(/<think>([\s\S]*?)<\/think>/g, function (match, inner) {
                 return `
                 <details class="mb-4 text-sm border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden group/details">
                     <summary class="cursor-pointer bg-slate-50 dark:bg-slate-800/50 px-3 py-2 font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
@@ -643,7 +758,7 @@
             } else {
                 rawContent = el.textContent;
             }
-            
+
             rawContent = parseReasoningTags(rawContent);
             el.innerHTML = renderMarkdown(rawContent);
             Prism.highlightAllUnder(el);
@@ -705,7 +820,7 @@
                     setTimeout(() => { btn.innerHTML = orig; }, 2000);
                 }
             } catch (e) {
-                navigator.clipboard.writeText(src).catch(() => {});
+                navigator.clipboard.writeText(src).catch(() => { });
             }
         }
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeImageModal(); });

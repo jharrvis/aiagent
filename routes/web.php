@@ -28,9 +28,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+    Route::delete('/conversations/{conversation}', [ConversationController::class, 'destroy'])->name('conversations.destroy');
+    Route::get('/conversations/{conversation}/download', [ConversationController::class, 'download'])->name('conversations.download');
 
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
     Route::get('/messages/{message}/pdf', [MessageController::class, 'downloadPdf'])->name('messages.pdf');
+    Route::get('/messages/{message}/excel', [MessageController::class, 'downloadExcel'])->name('messages.excel');
 
     Route::get('/gallery', [\App\Http\Controllers\GalleryController::class, 'index'])->name('gallery');
 });

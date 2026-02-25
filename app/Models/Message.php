@@ -48,4 +48,9 @@ class Message extends Model
     {
         return isset($this->metadata['pdf_path']);
     }
+
+    public function hasExcel(): bool
+    {
+        return isset($this->metadata['excel_path']);
+    }
 }
