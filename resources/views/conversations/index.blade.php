@@ -1,51 +1,56 @@
 <x-app-layout>
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100" 
-         x-data="{ 
-             searchQuery: '', 
-             loading: true,
-             deleteConversation(conversationId, element) {
-                 if (!confirm('Apakah Anda yakin ingin menghapus percakapan ini secara permanen?')) return;
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+         x-data="conversationsPage()"
+         x-init="init()">
 
-                 const card = element.closest('.conversation-card');
-                 const originalContent = card.innerHTML;
+        {{-- Global JS for this page --}}
+        <script>
+            function conversationsPage() {
+                return {
+                    searchQuery: '',
+                    loading: true,
+                    init() {
+                        setTimeout(() => { this.loading = false; }, 500);
+                    },
+                    deleteConversation(conversationId, card) {
+                        if (!confirm('Apakah Anda yakin ingin menghapus percakapan ini secara permanen?')) return;
 
-                 // Show loading state on card
-                 card.innerHTML = '<div class=\"p-5 space-y-3\"><div class=\"animate-pulse flex items-center gap-4\"><div class=\"w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-xl\"></div><div class=\"flex-1 space-y-2\"><div class=\"h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4\"></div><div class=\"h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2\"></div></div></div></div>';
+                        const originalContent = card.innerHTML;
+                        card.innerHTML = '<div class="p-5"><div class="animate-pulse flex items-center gap-4"><div class="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-xl"></div><div class="flex-1 space-y-2"><div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div><div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div></div></div></div>';
 
-                 fetch(`/conversations/${conversationId}`, {
-                     method: 'DELETE',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').content,
-                         'Accept': 'application/json'
-                     }
-                 })
-                 .then(response => {
-                     if (response.ok) {
-                         card.style.transition = 'all 0.3s ease';
-                         card.style.opacity = '0';
-                         card.style.transform = 'scale(0.95)';
-                         setTimeout(() => {
-                             card.remove();
-                             const remaining = document.querySelectorAll('.conversation-card');
-                             if (remaining.length === 0) {
-                                 location.reload();
-                             }
-                         }, 300);
-                     } else {
-                         alert('Gagal menghapus percakapan. Silakan coba lagi.');
-                         card.innerHTML = originalContent;
-                     }
-                 })
-                 .catch(error => {
-                     console.error('Error:', error);
-                     alert('Terjadi kesalahan. Silakan coba lagi.');
-                     card.innerHTML = originalContent;
-                 });
-             }
-         }"
-         x-init="setTimeout(() => { loading = false }, 500)">
-        
+                        fetch('/conversations/' + conversationId, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                card.style.transition = 'all 0.3s ease';
+                                card.style.opacity = '0';
+                                card.style.transform = 'scale(0.95)';
+                                setTimeout(() => {
+                                    card.remove();
+                                    if (document.querySelectorAll('.conversation-card').length === 0) {
+                                        location.reload();
+                                    }
+                                }, 300);
+                            } else {
+                                alert('Gagal menghapus percakapan. Silakan coba lagi.');
+                                card.innerHTML = originalContent;
+                            }
+                        })
+                        .catch(() => {
+                            alert('Terjadi kesalahan. Silakan coba lagi.');
+                            card.innerHTML = originalContent;
+                        });
+                    }
+                };
+            }
+        </script>
+
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
             <!-- Header -->
@@ -66,7 +71,7 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                        <!-- Pencarian -->
+                        <!-- Search -->
                         <div class="relative w-full sm:w-72">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                 <span class="material-symbols-outlined text-[20px]">search</span>
@@ -152,26 +157,10 @@
                 </template>
             </div>
 
-            <!-- List -->
-            <div x-show="!loading" style="display: none;">
+            <!-- Conversation List -->
+            <div x-show="!loading" x-cloak>
                 @forelse($groupedConversations ?? [] as $dateLabel => $group)
-                    @php
-                        $searchData = $group->map(function($c) {
-                            return [
-                                'name' => strtolower($c->agent->name),
-                                'msg' => strtolower(substr($c->messages->last()->content ?? '', 0, 100))
-                            ];
-                        })->values()->all();
-                    @endphp
-                    <div class="mb-8" x-data='{
-                        searchData: @json($searchData),
-                        get groupMatches() {
-                            if ($parent.searchQuery === "") return true;
-                            const sq = $parent.searchQuery.toLowerCase();
-                            return this.searchData.some(i => i.name.includes(sq) || i.msg.includes(sq));
-                        }
-                    }' x-show="groupMatches" style="display: none;">
-
+                    <div class="mb-8">
                         <div class="flex items-center gap-2 mb-4">
                             <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                                 {{ $dateLabel }}
@@ -183,36 +172,26 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($group as $conv)
                                 @php
-                                    $agentName = strtolower($conv->agent->name);
-                                    $lastMsg = substr($conv->messages->last()->content ?? '', 0, 100);
                                     $lastMessage = $conv->messages->last();
+                                    $lastMsgContent = $lastMessage?->content ?? '';
                                     $isUser = $lastMessage?->role === 'user';
-                                    // Escape for JavaScript
-                                    $escapedAgentName = str_replace(["\\", "'", "\n", "\r"], ["\\\\", "\\'", "\\n", "\\r"], $agentName);
-                                    $escapedMsg = str_replace(["\\", "'", "\n", "\r", '"'], ["\\\\", "\\'", "\\n", "\\r", '\"'], $lastMsg);
+                                    $agentNameLower = strtolower($conv->agent->name);
+                                    $lastMsgLower = strtolower(substr($lastMsgContent, 0, 100));
                                 @endphp
                                 <div class="conversation-card group bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 rounded-2xl transition-all duration-200 overflow-hidden shadow-sm hover:shadow-md"
-                                     x-data="{
-                                         name: '{{ $escapedAgentName }}',
-                                         msg: '{{ $escapedMsg }}',
-                                         get matches() {
-                                             if ($parent.searchQuery === '') return true;
-                                             const sq = $parent.searchQuery.toLowerCase();
-                                             return this.name.includes(sq) || this.msg.includes(sq);
-                                         }
-                                     }"
-                                     x-show="matches">
+                                     data-agent="{{ $agentNameLower }}"
+                                     data-msg="{{ $lastMsgLower }}"
+                                     x-show="searchQuery === '' || '{{ addslashes($agentNameLower) }}'.includes(searchQuery.toLowerCase()) || '{{ addslashes($lastMsgLower) }}'.includes(searchQuery.toLowerCase())">
 
                                     <a href="{{ route('conversations.show', $conv) }}" class="block p-5">
                                         <div class="flex items-start gap-4">
                                             <div class="relative shrink-0">
                                                 @if($conv->agent->avatar_path)
-                                                    <img src="{{ Storage::disk('public')->url($conv->agent->avatar_path) }}"
+                                                    <img src="{{ Storage::url($conv->agent->avatar_path) }}"
                                                         class="w-12 h-12 rounded-xl object-cover ring-2 ring-slate-200 dark:ring-slate-700 group-hover:ring-blue-500 transition-all"
                                                         alt="{{ $conv->agent->name }}">
                                                 @else
-                                                    <div
-                                                        class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 transition-colors">
+                                                    <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 transition-colors">
                                                         <span class="material-symbols-outlined text-[24px]">smart_toy</span>
                                                     </div>
                                                 @endif
@@ -236,7 +215,7 @@
                                                     </span>
                                                 </div>
                                                 <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                                                    {{ $lastMessage?->content ?? 'Percakapan baru...' }}
+                                                    {{ $lastMsgContent ?: 'Percakapan baru...' }}
                                                 </p>
                                             </div>
                                         </div>
@@ -245,7 +224,6 @@
                                     <!-- Bottom Action Bar -->
                                     <div class="px-5 pb-4 pt-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
                                         <div class="flex items-center justify-between gap-3">
-                                            <!-- Left: Download & Delete -->
                                             <div class="flex items-center gap-2">
                                                 <a href="{{ route('conversations.download', $conv) }}"
                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 rounded-lg transition-colors"
@@ -253,7 +231,7 @@
                                                     <span class="material-symbols-outlined text-[16px]">download</span>
                                                     {{ __('Unduh') }}
                                                 </a>
-                                                <button onclick="deleteConversation({{ $conv->id }}, this)"
+                                                <button @click="deleteConversation({{ $conv->id }}, $el.closest('.conversation-card'))"
                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800 rounded-lg transition-colors"
                                                    title="{{ __('Hapus') }}">
                                                     <span class="material-symbols-outlined text-[16px]">delete</span>
@@ -261,7 +239,6 @@
                                                 </button>
                                             </div>
 
-                                            <!-- Right: Continue Chat -->
                                             <a href="{{ route('conversations.show', $conv) }}"
                                                class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm">
                                                 <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -274,10 +251,8 @@
                         </div>
                     </div>
                 @empty
-                    <div
-                        class="py-16 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <div
-                            class="h-20 w-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                    <div class="py-16 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <div class="h-20 w-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                             <span class="material-symbols-outlined text-[40px]">chat_bubble_outline</span>
                         </div>
                         <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Belum ada percakapan</h3>

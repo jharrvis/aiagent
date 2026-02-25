@@ -16,6 +16,11 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 
     <script>
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
