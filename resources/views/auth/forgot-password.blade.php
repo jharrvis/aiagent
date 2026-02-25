@@ -15,9 +15,9 @@
             <div class="relative z-10 flex items-center gap-3 text-white">
                 <div
                     class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary">
-                    <span class="material-symbols-outlined text-2xl">neurology</span>
+                    <span class="material-symbols-outlined text-2xl">smart_toy</span>
                 </div>
-                <span class="text-xl font-bold tracking-tight">AI Nexus</span>
+                <span class="text-xl font-bold tracking-tight">Asisten CEO</span>
             </div>
 
             <!-- Content Overlay -->
@@ -26,7 +26,7 @@
                     {{ __('Keamanan Anda adalah prioritas kami.') }}
                 </h1>
                 <p class="text-lg text-slate-400 mb-8 leading-relaxed">
-                    {{ __('Atur ulang kata sandi Anda untuk mendapatkan kembali akses ke asisten AI cerdas Anda.') }}
+                    {{ __('Atur ulang kata sandi Anda untuk mendapatkan kembali akses ke Asisten CEO AI yang membantu mengelola tugas dan meningkatkan produktivitas Anda.') }}
                 </p>
             </div>
         </div>
@@ -37,9 +37,9 @@
             <!-- Mobile Header Logo -->
             <div class="lg:hidden w-full max-w-md mb-8 flex items-center gap-2">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined text-xl">neurology</span>
+                    <span class="material-symbols-outlined text-xl">smart_toy</span>
                 </div>
-                <span class="text-lg font-bold text-slate-900 dark:text-white">AI Nexus</span>
+                <span class="text-lg font-bold text-slate-900 dark:text-white">Asisten CEO</span>
             </div>
 
             <div class="w-full max-w-md space-y-8">

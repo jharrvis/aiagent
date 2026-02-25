@@ -15,18 +15,18 @@
             <div class="relative z-10 flex items-center gap-3 text-white">
                 <div
                     class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary">
-                    <span class="material-symbols-outlined text-2xl">neurology</span>
+                    <span class="material-symbols-outlined text-2xl">smart_toy</span>
                 </div>
-                <span class="text-xl font-bold tracking-tight">AI Nexus</span>
+                <span class="text-xl font-bold tracking-tight">Asisten CEO</span>
             </div>
 
             <!-- Content Overlay -->
             <div class="relative z-10 max-w-lg">
                 <h1 class="text-4xl xl:text-5xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-                    {{ __('Berdayakan alur kerja Anda dengan Agen AI.') }}
+                    {{ __('Asisten AI pribadi untuk meningkatkan produktivitas Anda.') }}
                 </h1>
                 <p class="text-lg text-slate-400 mb-8 leading-relaxed">
-                    {{ __('Atur tugas kompleks, otomatiskan alur kerja, dan terapkan agen cerdas dalam hitungan detik. Bergabunglah dengan masa depan inteligensi terotomatisasi.') }}
+                    {{ __('Asisten CEO AI membantu Anda mengelola tugas, menganalisis data, dan meningkatkan alur kerja dengan kecerdasan buatan. Dari analis bisnis hingga penulis kreatif, semua dalam satu platform.') }}
                 </p>
 
                 <!-- Testimonial / Social Proof -->
@@ -60,9 +60,9 @@
             <!-- Mobile Header Logo -->
             <div class="lg:hidden w-full max-w-md mb-8 flex items-center gap-2">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined text-xl">neurology</span>
+                    <span class="material-symbols-outlined text-xl">smart_toy</span>
                 </div>
-                <span class="text-lg font-bold text-slate-900 dark:text-white">AI Nexus</span>
+                <span class="text-lg font-bold text-slate-900 dark:text-white">Asisten CEO</span>
             </div>
 
             <div class="w-full max-w-md space-y-8">

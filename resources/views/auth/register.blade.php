@@ -15,18 +15,18 @@
             <div class="relative z-10 flex items-center gap-3 text-white">
                 <div
                     class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/20 backdrop-blur-sm border border-primary/30 text-primary">
-                    <span class="material-symbols-outlined text-2xl">neurology</span>
+                    <span class="material-symbols-outlined text-2xl">smart_toy</span>
                 </div>
-                <span class="text-xl font-bold tracking-tight">AI Nexus</span>
+                <span class="text-xl font-bold tracking-tight">Asisten CEO</span>
             </div>
 
             <!-- Content Overlay -->
             <div class="relative z-10 max-w-lg">
                 <h1 class="text-4xl xl:text-5xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-                    {{ __('Mulai perjalanan cerdas Anda sekarang.') }}
+                    {{ __('Mulai perjalanan cerdas Anda dengan Asisten CEO.') }}
                 </h1>
                 <p class="text-lg text-slate-400 mb-8 leading-relaxed">
-                    {{ __('Buat akun hari ini dan rasakan kemudahan mengelola tugas dengan asisten AI yang andal.') }}
+                    {{ __('Buat akun hari ini dan rasakan kemudahan mengelola tugas dengan asisten AI yang andal. Dari analis bisnis hingga penulis kreatif, Asisten CEO membantu Anda bekerja lebih cerdas.') }}
                 </p>
             </div>
         </div>
@@ -37,17 +37,17 @@
             <!-- Mobile Header Logo -->
             <div class="lg:hidden w-full max-w-md mb-8 flex items-center gap-2">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined text-xl">neurology</span>
+                    <span class="material-symbols-outlined text-xl">smart_toy</span>
                 </div>
-                <span class="text-lg font-bold text-slate-900 dark:text-white">AI Nexus</span>
+                <span class="text-lg font-bold text-slate-900 dark:text-white">Asisten CEO</span>
             </div>
 
             <div class="w-full max-w-md space-y-8">
                 <div class="text-center lg:text-left">
-                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{{ __('Buat Akun') }}
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{{ __('Buat Akun Asisten CEO') }}
                     </h2>
                     <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                        {{ __('Daftar untuk mulai menjelajahi Marketplace Agen AI.') }}
+                        {{ __('Daftar untuk mulai menjelajahi Asisten CEO AI yang membantu meningkatkan produktivitas Anda.') }}
                     </p>
                 </div>
 
