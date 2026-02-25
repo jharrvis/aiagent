@@ -137,7 +137,7 @@
                         <label
                             class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">{{ __('Fitur & Kemampuan') }}</label>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            @php $capabilities = old('capabilities', $agent->capabilities ?? []); @endphp
+                            @php $capabilities = old('capabilities', is_array($agent->capabilities) ? $agent->capabilities : []); @endphp
                             <!-- Text -->
                             <label
                                 class="relative flex items-center p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 cursor-pointer hover:border-blue-500/50 transition-all group">
@@ -224,12 +224,12 @@
                                     class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
                                     {{ __('Quick Questions (Clickable Buttons)') }}
                                 </label>
-                                <textarea 
-                                    name="quick_questions" 
-                                    id="quick_questions" 
+                                <textarea
+                                    name="quick_questions"
+                                    id="quick_questions"
                                     rows="5"
                                     placeholder="{{ __('Enter one question per line') }}&#10;{{ __('Contoh:') }}&#10;{{ __('Hitung Profit First saya') }}&#10;{{ __('Buat Excel lengkap') }}&#10;{{ __('Analisis OPEX') }}"
-                                    class="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none font-mono text-sm">{{ old('quick_questions', is_array($agent->quick_questions ?? []) ? implode("\n", $agent->quick_questions) : '') }}</textarea>
+                                    class="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none font-mono text-sm">{{ old('quick_questions', is_array($agent->quick_questions) ? implode("\n", $agent->quick_questions) : '') }}</textarea>
                                 <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                     {{ __('Satu pertanyaan per baris. Tombol ini akan muncul di chatbox untuk diklik user.') }}
                                 </p>
