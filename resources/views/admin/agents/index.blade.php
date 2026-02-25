@@ -103,17 +103,16 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        @if($agent->is_active)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                                <span class="size-1.5 rounded-full bg-emerald-500"></span>
-                                                {{ __('AKTIF') }}
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                                <span class="size-1.5 rounded-full bg-slate-400"></span>
-                                                {{ __('NONAKTIF') }}
-                                            </span>
-                                        @endif
+                                        <form action="{{ route('admin.agents.toggle-status', $agent) }}" method="POST" class="inline">
+                                            @csrf
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" name="is_active" value="1" {{ $agent->is_active ? 'checked' : '' }} class="sr-only peer" onchange="this.form.submit()">
+                                                <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                <span class="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    {{ $agent->is_active ? 'Aktif' : 'Nonaktif' }}
+                                                </span>
+                                            </label>
+                                        </form>
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex items-center justify-end gap-2">

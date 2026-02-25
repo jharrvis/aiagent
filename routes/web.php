@@ -41,6 +41,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('agents', \App\Http\Controllers\Admin\AgentController::class);
     Route::post('agents/{agent}/knowledge', [\App\Http\Controllers\Admin\AgentController::class, 'uploadKnowledge'])
         ->name('agents.knowledge.upload');
+    Route::post('agents/{agent}/toggle-status', [\App\Http\Controllers\Admin\AgentController::class, 'toggleStatus'])
+        ->name('agents.toggle-status');
 
     // User Management Routes
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);

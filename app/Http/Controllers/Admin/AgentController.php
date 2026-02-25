@@ -159,6 +159,19 @@ class AgentController extends Controller
             ->with('success', 'Agent deleted successfully.');
     }
 
+    /**
+     * Toggle agent active status
+     */
+    public function toggleStatus(Agent $agent)
+    {
+        $agent->update(['is_active' => !$agent->is_active]);
+
+        $status = $agent->is_active ? 'active' : 'inactive';
+
+        return redirect()->route('admin.agents.index')
+            ->with('success', "Agent {$status} successfully.");
+    }
+
     public function uploadKnowledge(Request $request, Agent $agent)
     {
         $request->validate([
