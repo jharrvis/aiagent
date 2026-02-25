@@ -175,22 +175,44 @@ class AgentController extends Controller
     public function uploadKnowledge(Request $request, Agent $agent)
     {
         $request->validate([
-            'file' => 'required|file|mimes:pdf,txt,docx|max:10240',
+            'files' => 'required|array|min:1',
+            'files.*' => 'file|mimes:pdf,txt,docx|max:10240',
         ]);
 
-        $file = $request->file('file');
-        $path = $file->store('knowledge', 'local');
-        $originalFilename = $file->getClientOriginalName();
+        $uploadedCount = 0;
+        $failedFiles = [];
 
-        $knowledgeSource = KnowledgeSource::create([
-            'agent_id' => $agent->id,
-            'file_path' => $path,
-            'original_filename' => $originalFilename,
-            'status' => 'pending',
-        ]);
+        foreach ($request->file('files') as $file) {
+            try {
+                $path = $file->store('knowledge', 'local');
+                $originalFilename = $file->getClientOriginalName();
 
-        ProcessKnowledgeSource::dispatch($knowledgeSource);
+                $knowledgeSource = KnowledgeSource::create([
+                    'agent_id' => $agent->id,
+                    'file_path' => $path,
+                    'original_filename' => $originalFilename,
+                    'status' => 'pending',
+                ]);
 
-        return back()->with('success', 'File uploaded and processing started.');
+                ProcessKnowledgeSource::dispatch($knowledgeSource);
+                $uploadedCount++;
+            } catch (\Exception $e) {
+                $failedFiles[] = $file->getClientOriginalName();
+                \Log::error('Knowledge source upload failed', [
+                    'file' => $file->getClientOriginalName(),
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $message = $uploadedCount > 0 
+            ? "{$uploadedCount} file(s) uploaded and processing started." 
+            : 'No files were uploaded.';
+        
+        if (!empty($failedFiles)) {
+            $message .= " Failed: " . implode(', ', $failedFiles);
+        }
+
+        return back()->with($uploadedCount > 0 ? 'success' : 'error', $message);
     }
 }

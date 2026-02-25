@@ -106,13 +106,13 @@
                             <form action="{{ route('admin.agents.knowledge.upload', $agent) }}" method="POST" enctype="multipart/form-data" class="mb-8">
                                 @csrf
                                 <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 transition-colors hover:border-blue-500/50">
-                                    <input type="file" name="file" accept=".pdf,.txt,.docx" required
+                                    <input type="file" name="files[]" accept=".pdf,.txt,.docx" multiple required
                                         class="flex-1 text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
                                     <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg">
                                         {{ __('Unggah Dokumen') }}
                                     </button>
                                 </div>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-2 text-center uppercase tracking-wider">{{ __('Format: PDF, TXT, DOCX (Maks 10MB)') }}</p>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-2 text-center uppercase tracking-wider">{{ __('Format: PDF, TXT, DOCX (Maks 10MB per file)') }}</p>
                             </form>
 
                             <div class="overflow-x-auto">
