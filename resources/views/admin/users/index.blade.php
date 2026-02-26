@@ -221,32 +221,83 @@
     </div>
 
     <!-- Top-up Modal -->
-    <div x-data="topupModal" 
-         x-show="isOpen" 
-         @open-topup-modal.window="openModal($event.detail)"
-         x-cloak 
-         class="fixed inset-0 z-50 overflow-y-auto" 
-         aria-labelledby="modal-title"
-         role="dialog" 
-         aria-modal="true">
+    <div x-data="{
+            isOpen: false,
+            userId: null,
+            userName: '',
+            currentBalance: 0,
+            amount: 1000,
+            isSubmitting: false,
+            init() {
+                window.addEventListener('open-topup-modal', (e) => {
+                    this.userId = e.detail.id;
+                    this.userName = e.detail.name;
+                    this.currentBalance = e.detail.balance;
+                    this.amount = 1000;
+                    this.isOpen = true;
+                });
+            },
+            openModal(detail) {
+                this.userId = detail.id;
+                this.userName = detail.name;
+                this.currentBalance = detail.balance;
+                this.amount = 1000;
+                this.isOpen = true;
+            },
+            closeModal() {
+                this.isOpen = false;
+            },
+            async submitTopup() {
+                if (this.amount <= 0) return;
+                this.isSubmitting = true;
+                try {
+                    const response = await fetch(`/admin/users/${this.userId}/topup`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ amount: this.amount })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Terjadi kesalahan saat top-up.');
+                    }
+                } catch (error) {
+                    alert('Terjadi kesalahan jaringan.');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            }
+        }"
+        x-show="isOpen"
+        @open-topup-modal.window="openModal($event.detail)"
+        x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true">
 
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Overlay -->
-            <div x-show="isOpen" 
-                 x-transition:enter="ease-out duration-300" 
+            <div x-show="isOpen"
+                 x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100" 
+                 x-transition:enter-end="opacity-100"
                  x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100" 
-                 x-transition:leave-end="opacity-0" 
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
                  @click="closeModal()"
-                 class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" 
+                 class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
                  aria-hidden="true"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <!-- Modal Panel -->
-            <div x-show="isOpen" 
+            <div x-show="isOpen"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                  x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -256,7 +307,7 @@
                  class="inline-block align-bottom bg-white dark:bg-slate-900 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200 dark:border-slate-800">
 
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modal-title">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">
                         Top-up Token: <span x-text="userName" class="text-emerald-500"></span>
                     </h3>
                     <button @click="closeModal()"
@@ -279,7 +330,7 @@
                     </label>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-amber-500">diamond</span>
-                        <input type="number" 
+                        <input type="number"
                                x-model="amount"
                                min="1"
                                class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
@@ -307,58 +358,4 @@
             </div>
         </div>
     </div>
-
-    <script>
-        function topupModal() {
-            return {
-                isOpen: false,
-                userId: null,
-                userName: '',
-                currentBalance: 0,
-                amount: 1000,
-                isSubmitting: false,
-                
-                openModal(detail) {
-                    this.userId = detail.id;
-                    this.userName = detail.name;
-                    this.currentBalance = detail.balance;
-                    this.amount = 1000;
-                    this.isOpen = true;
-                },
-                
-                closeModal() {
-                    this.isOpen = false;
-                },
-                
-                async submitTopup() {
-                    if (this.amount <= 0) return;
-                    this.isSubmitting = true;
-
-                    try {
-                        const response = await fetch(`/admin/users/${this.userId}/topup`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ amount: this.amount })
-                        });
-
-                        const data = await response.json();
-
-                        if (response.ok) {
-                            window.location.reload();
-                        } else {
-                            alert(data.error || 'Terjadi kesalahan saat top-up.');
-                        }
-                    } catch (error) {
-                        alert('Terjadi kesalahan jaringan.');
-                    } finally {
-                        this.isSubmitting = false;
-                    }
-                }
-            }
-        }
-    </script>
 </x-app-layout>
