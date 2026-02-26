@@ -109,7 +109,7 @@
                             @foreach($recentConversations as $conv)
                                 <a href="{{ route('conversations.show', $conv->id) }}"
                                     class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs transition-colors group
-                                                                    {{ (isset($conversation) && $conversation->id == $conv->id) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200' }}">
+                                                                            {{ (isset($conversation) && $conversation->id == $conv->id) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200' }}">
                                     <span
                                         class="material-symbols-outlined text-[14px] shrink-0 opacity-50">chat_bubble_outline</span>
                                     @php
@@ -751,7 +751,7 @@
             hideWelcomeScreen();
             const container = getMessageContainer();
             const messageDiv = document.createElement('div');
-            
+
             messageDiv.className = 'flex gap-3 group/bot';
             messageDiv.innerHTML = `
                 <div class="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 text-amber-500 border border-amber-200 dark:border-amber-500/20 mt-0.5">
@@ -767,7 +767,7 @@
                     </div>
                 </div>
             `;
-            
+
             container.appendChild(messageDiv);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
@@ -914,15 +914,36 @@
                         ...data.assistant_message.metadata,
                         message_id: data.assistant_message.id
                     });
-                    
-                    // Token deducted automatically on backend. 
-                    // Optional: update navbar token counter here if needed (e.g by dispatching an Alpine event), 
-                    // but page refresh handles it implicitly for now.
+                    // Update realtime token balance if provided
+                    if (data.token_balance !== undefined) {
+                        const formattedBalance = new Intl.NumberFormat('id-ID').format(data.token_balance);
+
+                        // Desktop Navbar
+                        const desktopTokenEl = document.getElementById('navbar-token-desktop');
+                        if (desktopTokenEl) {
+                            desktopTokenEl.textContent = formattedBalance;
+                            if (data.token_balance < 500) {
+                                desktopTokenEl.classList.remove('text-slate-700', 'dark:text-slate-300');
+                                desktopTokenEl.classList.add('text-red-500');
+                            }
+                        }
+
+                        // Mobile Navbar
+                        const mobileTokenEl = document.getElementById('navbar-token-mobile');
+                        if (mobileTokenEl) {
+                            mobileTokenEl.textContent = formattedBalance;
+                            if (data.token_balance < 500) {
+                                mobileTokenEl.classList.remove('text-slate-700', 'dark:text-slate-200');
+                                mobileTokenEl.classList.add('text-red-500');
+                            }
+                        }
+                    }
+
                     messageInput.disabled = false;
                     messageInput.focus();
                 } else {
                     const data = await response.json();
-                    
+
                     if (response.status === 403) {
                         // Handle Token Quota Exhausted
                         const errorMessageHtml = `

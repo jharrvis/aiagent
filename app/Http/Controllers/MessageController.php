@@ -129,6 +129,7 @@ class MessageController extends Controller
         return response()->json([
             'user_message' => $userMessage,
             'assistant_message' => $assistantMessage,
+            'token_balance' => $user->token_balance,
         ]);
     }
 
