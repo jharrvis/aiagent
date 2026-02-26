@@ -62,6 +62,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
     Route::post('users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])
         ->name('users.toggle-status');
+    Route::post('users/{user}/topup', [\App\Http\Controllers\Admin\UserController::class, 'topup'])
+        ->name('users.topup');
 
     // Analytics Routes
     Route::get('analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');

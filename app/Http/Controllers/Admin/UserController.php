@@ -169,4 +169,22 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')
             ->with('success', "User role changed to {$status} successfully.");
     }
+
+    /**
+     * Top-up user token balance.
+     */
+    public function topup(Request $request, User $user)
+    {
+        $request->validate([
+            'amount' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $user->increment('token_balance', $request->amount);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Token balance updated successfully.',
+            'new_balance' => $user->token_balance,
+        ]);
+    }
 }

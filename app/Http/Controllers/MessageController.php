@@ -44,9 +44,9 @@ class MessageController extends Controller
             $request->input('content')
         );
 
-        // Check User Quota
+        // Check User Quota (Skip if Admin)
         $user = $request->user();
-        if ($user->token_balance <= 0) {
+        if (!$user->is_admin && $user->token_balance <= 0) {
             return response()->json([
                 'error' => 'Kuota token Anda telah habis. Silakan lakukan Top-Up untuk terus mengobrol.',
             ], 403);
@@ -106,8 +106,8 @@ class MessageController extends Controller
             'total_tokens' => $usage['total_tokens'] ?? null,
         ]);
 
-        // Deduct Token Balance
-        if (isset($usage['total_tokens'])) {
+        // Deduct Token Balance (Skip if Admin)
+        if (!$user->is_admin && isset($usage['total_tokens'])) {
             $user->decrement('token_balance', $usage['total_tokens']);
 
             // To prevent negative balance displaying in UI (optional safeguard)

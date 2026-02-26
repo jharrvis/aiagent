@@ -69,8 +69,15 @@
                         class="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg mr-2 border border-slate-200 dark:border-slate-700">
                         <span class="material-symbols-outlined text-[16px] text-amber-500">diamond</span>
                         <span id="navbar-token-desktop"
-                            class="text-sm font-bold {{ auth()->user()->token_balance < 500 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300' }}">
-                            {{ number_format(auth()->user()->token_balance, 0, ',', '.') }}
+                            class="text-sm font-bold {{ auth()->user()->token_balance < 500 && !auth()->user()->is_admin ? 'text-red-500' : 'text-slate-700 dark:text-slate-300' }}">
+                            @if(auth()->user()->is_admin)
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">all_inclusive</span>
+                                    {{ __('Unlimited') }}
+                                </span>
+                            @else
+                                {{ number_format(auth()->user()->token_balance, 0, ',', '.') }}
+                            @endif
                         </span>
                     </div>
 
@@ -179,8 +186,15 @@
                     <div class="flex items-center gap-1.5">
                         <span class="material-symbols-outlined text-[16px] text-amber-500">diamond</span>
                         <span id="navbar-token-mobile"
-                            class="text-sm font-bold {{ auth()->user()->token_balance < 500 ? 'text-red-500' : 'text-slate-700 dark:text-slate-200' }}">
-                            {{ number_format(auth()->user()->token_balance, 0, ',', '.') }}
+                            class="text-sm font-bold {{ auth()->user()->token_balance < 500 && !auth()->user()->is_admin ? 'text-red-500' : 'text-slate-700 dark:text-slate-200' }}">
+                            @if(auth()->user()->is_admin)
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">all_inclusive</span>
+                                    {{ __('Unlimited') }}
+                                </span>
+                            @else
+                                {{ number_format(auth()->user()->token_balance, 0, ',', '.') }}
+                            @endif
                         </span>
                     </div>
                 </div>

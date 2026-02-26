@@ -291,7 +291,7 @@ Isi dengan konfigurasi berikut:
 
 ```env
 # Application
-APP_NAME="AI Agent Platform"
+APP_NAME="Assisten CEO"
 APP_ENV=production
 APP_KEY=your_generated_key
 APP_DEBUG=false
