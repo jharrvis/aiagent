@@ -43,7 +43,7 @@
 
             {{-- Agent Body --}}
             <div class="p-4 flex-1 overflow-y-auto sidebar-scroll space-y-4 min-w-[16rem]"
-                x-data="{ qOpen: true, hOpen: true }">
+                x-data="{ qOpen: false, hOpen: true }">
 
                 <div>
                     <h4 class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
@@ -109,11 +109,17 @@
                             @foreach($recentConversations as $conv)
                                 <a href="{{ route('conversations.show', $conv->id) }}"
                                     class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs transition-colors group
-                                                    {{ (isset($conversation) && $conversation->id == $conv->id) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200' }}">
+                                                            {{ (isset($conversation) && $conversation->id == $conv->id) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200' }}">
                                     <span
                                         class="material-symbols-outlined text-[14px] shrink-0 opacity-50">chat_bubble_outline</span>
-                                    <span
-                                        class="truncate flex-1">{{ $conv->title ?: 'Chat ' . $conv->created_at->format('d/m H:i') }}</span>
+                                    @php
+                                        $displayTitle = $conv->title;
+                                        if (empty($displayTitle) || $displayTitle === 'New Conversation') {
+                                            $firstMsg = $conv->messages->first();
+                                            $displayTitle = $firstMsg ? \Illuminate\Support\Str::limit($firstMsg->content, 30) : 'Chat Baru';
+                                        }
+                                    @endphp
+                                    <span class="truncate flex-1" title="{{ $displayTitle }}">{{ $displayTitle }}</span>
                                 </a>
                             @endforeach
                         </div>
@@ -332,7 +338,7 @@
                                     <button type="button" onclick="sendQuickQuestion({{ json_encode($question) }})"
                                         class="group px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 text-left text-sm text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-300 transition-all shadow-sm hover:shadow-md leading-snug">
                                         <span
-                                            class="material-symbols-outlined text-[16px] text-blue-500 mr-1.5 align-middle">spark</span>{{ $question }}
+                                            class="material-symbols-outlined text-[16px] text-blue-500 mr-1.5 align-middle">lightbulb</span>{{ $question }}
                                     </button>
                                 @endforeach
                             </div>

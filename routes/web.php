@@ -18,7 +18,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/agents/{agent}', function (\App\Models\Agent $agent) {
-        $recentConversations = \App\Models\Conversation::where('agent_id', $agent->id)
+        $recentConversations = \App\Models\Conversation::with([
+            'messages' => function ($query) {
+                $query->oldest()->limit(1);
+            }
+        ])
+            ->where('agent_id', $agent->id)
             ->where('user_id', auth()->id())
             ->orderByDesc('updated_at')
             ->limit(20)
