@@ -332,15 +332,24 @@
                         </p>
 
                         {{-- Quick Question Grid --}}
-                        @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                        @php
+                            $quickQuestions = $agent->quick_questions ?? [];
+                            $hasQuickQuestions = is_array($quickQuestions) && count($quickQuestions) > 0;
+                        @endphp
+                        @if($hasQuickQuestions)
                             <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
-                                @foreach($agent->quick_questions as $question)
+                                @foreach($quickQuestions as $question)
                                     <button type="button" onclick="sendQuickQuestion({{ json_encode($question) }})"
                                         class="group px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 text-left text-sm text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-300 transition-all shadow-sm hover:shadow-md leading-snug">
                                         <span
                                             class="material-symbols-outlined text-[16px] text-blue-500 mr-1.5 align-middle">lightbulb</span>{{ $question }}
                                     </button>
                                 @endforeach
+                            </div>
+                        @else
+                            {{-- Debug: No quick questions --}}
+                            <div class="text-xs text-slate-400 mt-4">
+                                <p>Quick questions: {{ is_array($quickQuestions) ? count($quickQuestions) : 'not set' }}</p>
                             </div>
                         @endif
                     </div>
