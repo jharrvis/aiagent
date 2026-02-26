@@ -5,16 +5,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <div class="flex-1 flex overflow-hidden h-[calc(100vh-65px)]">
-        <!-- Sidebar Kiri: Info Agen (Desktop only) -->
-        <aside
-            class="w-64 hidden lg:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0">
-            <!-- Agent Info -->
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+    {{-- =========================================================
+    CHAT LAYOUT — Redesigned
+    ========================================================= --}}
+    <div class="flex-1 flex overflow-hidden h-[calc(100vh-65px)]" x-data="{
+            sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen') ?? 'true'),
+            quickOpen: false,
+            toggleSidebar() {
+                this.sidebarOpen = !this.sidebarOpen;
+                localStorage.setItem('sidebarOpen', JSON.stringify(this.sidebarOpen));
+            }
+         }">
+
+        {{-- ── SIDEBAR ──────────────────────────────────────────── --}}
+        <aside :class="sidebarOpen ? 'w-64' : 'w-0'"
+            class="hidden lg:flex flex-col flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+
+            {{-- Agent Info Header --}}
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3 min-w-[16rem]">
                 <div
                     class="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 shrink-0">
                     @if($agent->avatar_path)
-                        <img src="{{ Storage::url($agent->avatar_path) }}" class="w-full h-full rounded-xl object-cover">
+                        <img src="{{ Storage::url($agent->avatar_path) }}" class="w-full h-full rounded-xl object-cover"
+                            alt="{{ $agent->name }}">
                     @else
                         <span class="material-symbols-outlined text-[22px]">smart_toy</span>
                     @endif
@@ -22,13 +35,16 @@
                 <div class="min-w-0">
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $agent->name }}</h3>
                     <div class="flex items-center gap-1 mt-0.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                         <span class="text-xs text-slate-500">Aktif</span>
                     </div>
                 </div>
             </div>
 
-            <div class="p-4 flex-1 overflow-y-auto space-y-4">
+            {{-- Agent Body --}}
+            <div class="p-4 flex-1 overflow-y-auto sidebar-scroll space-y-4 min-w-[16rem]"
+                x-data="{ qOpen: true, hOpen: true }">
+
                 <div>
                     <h4 class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
                         Tentang</h4>
@@ -51,9 +67,62 @@
                         </div>
                     </div>
                 @endif
+
+                {{-- Collapsible Quick Questions --}}
+                @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                    <div>
+                        <button @click="qOpen = !qOpen"
+                            class="flex items-center justify-between w-full text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                            <span>Pertanyaan Umum</span>
+                            <span class="material-symbols-outlined text-[14px] transition-transform duration-200"
+                                :class="qOpen ? 'rotate-180' : ''">expand_more</span>
+                        </button>
+                        <div x-show="qOpen" x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0" class="space-y-1">
+                            @foreach($agent->quick_questions as $q)
+                                <button type="button" onclick="sendQuickQuestion({{ json_encode($q) }})"
+                                    class="w-full text-left text-xs text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1.5 rounded-lg transition-colors leading-snug">
+                                    {{ $q }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Conversation History --}}
+                @if(isset($recentConversations) && $recentConversations->count() > 0)
+                    <div>
+                        <button @click="hOpen = !hOpen"
+                            class="flex items-center justify-between w-full text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                            <span>Riwayat Chat</span>
+                            <span class="material-symbols-outlined text-[14px] transition-transform duration-200"
+                                :class="hOpen ? 'rotate-180' : ''">expand_more</span>
+                        </button>
+                        <div x-show="hOpen" x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0" class="space-y-0.5">
+                            @foreach($recentConversations as $conv)
+                                <a href="{{ route('conversations.show', $conv->id) }}"
+                                    class="flex items-center gap-2 px-2 py-2 rounded-lg text-xs transition-colors group
+                                                    {{ (isset($conversation) && $conversation->id == $conv->id) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200' }}">
+                                    <span
+                                        class="material-symbols-outlined text-[14px] shrink-0 opacity-50">chat_bubble_outline</span>
+                                    <span
+                                        class="truncate flex-1">{{ $conv->title ?: 'Chat ' . $conv->created_at->format('d/m H:i') }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
-            <div class="p-3 border-t border-slate-200 dark:border-slate-800">
+            {{-- Back Button --}}
+            <div class="p-3 border-t border-slate-200 dark:border-slate-800 min-w-[16rem]">
                 <a href="{{ route('marketplace') }}"
                     class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs font-medium">
                     <span class="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -62,59 +131,51 @@
             </div>
         </aside>
 
-
-        <!-- Area Chat Utama -->
+        {{-- ── MAIN CHAT ─────────────────────────────────────────── --}}
         <main class="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 relative min-w-0"
             x-data="{ showAgentInfo: false }">
 
-            <!-- Header Chat -->
-            <header
-                class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 shrink-0">
-                <button class="flex items-center gap-3 min-w-0 text-left" @click="showAgentInfo = !showAgentInfo">
-                    <div
-                        class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 border border-blue-200 dark:border-blue-500/20 shrink-0">
-                        @if($agent->avatar_path)
-                            <img src="{{ Storage::url($agent->avatar_path) }}"
-                                class="w-full h-full rounded-lg object-cover">
-                        @else
-                            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
-                        @endif
-                    </div>
-                    <div class="min-w-0">
-                        <h2 class="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">
-                            {{ $agent->name }}
-                        </h2>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            <span class="text-xs text-slate-500 dark:text-slate-400">Aktif Sekarang</span>
-                        </div>
-                    </div>
-                    <span class="material-symbols-outlined text-[16px] text-slate-400 lg:hidden ml-1"
-                        :class="showAgentInfo ? 'rotate-180' : ''">expand_more</span>
+            {{-- ── HEADER ──────────────────────────────── --}}
+            <header class="flex items-center justify-between px-3 py-2 bg-transparent z-10 shrink-0">
+
+                {{-- Hamburger (desktop sidebar toggle) --}}
+                <button @click="toggleSidebar()"
+                    class="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    title="Toggle Sidebar">
+                    <span class="material-symbols-outlined text-[22px]">menu</span>
                 </button>
 
-                <div class="flex items-center gap-1 relative" x-data="{ open: false }">
-                    <button id="download-chat-btn" onclick="downloadChat()"
-                        class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                        title="Unduh Chat">
-                        <span class="material-symbols-outlined text-[20px]">download</span>
-                    </button>
+                {{-- Mobile: hamburger → opens agent info --}}
+                <button
+                    class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    @click="showAgentInfo = !showAgentInfo">
+                    <span class="material-symbols-outlined text-[22px]">menu</span>
+                </button>
+
+                {{-- 3-dots menu --}}
+                <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" @click.outside="open = false"
-                        class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                        title="Opsi">
+                        <span class="material-symbols-outlined text-[22px]">more_horiz</span>
                     </button>
                     <div x-show="open" x-transition.origin.top.right
-                        class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden z-[100]"
+                        class="absolute right-0 top-10 w-52 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[100] py-1"
                         style="display:none">
                         <a href="{{ route('agents.chat', $agent->id) }}"
-                            class="flex items-center gap-2 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                            <span class="material-symbols-outlined text-[18px]">add_comment</span>
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                            <span class="material-symbols-outlined text-[18px] text-slate-400">add_comment</span>
                             Mulai Chat Baru
                         </a>
+                        <button onclick="downloadChat()"
+                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left">
+                            <span class="material-symbols-outlined text-[18px] text-slate-400">download</span>
+                            Unduh Chat
+                        </button>
                         @if(isset($conversation) && $conversation->id)
-                            <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+                            <div class="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
                             <button onclick="deleteChat({{ $conversation->id }})"
-                                class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left">
+                                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
                                 Hapus Chat
                             </button>
@@ -123,12 +184,12 @@
                 </div>
             </header>
 
-            <!-- Mobile Agent Info Panel (collapsible) -->
+            {{-- Mobile Agent Info Panel --}}
             <div x-show="showAgentInfo" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-150"
-                x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2"
-                class="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 z-10 shrink-0"
+                x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 shrink-0"
                 style="display:none">
                 <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
                     {{ $agent->description ?: 'Agen AI yang siap membantu berbagai tugas Anda.' }}
@@ -143,199 +204,255 @@
                 @endif
             </div>
 
-            <!-- Area Pesan -->
-            <div id="messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-                @if(isset($conversation) && $conversation->messages->count() > 0)
-                    @foreach($conversation->messages as $msg)
-                        @php $isUser = $msg->role === 'user'; @endphp
-                        <div class="{{ $isUser ? 'flex flex-row-reverse gap-4 max-w-3xl ml-auto' : 'flex gap-4 max-w-3xl' }}">
-                            <div
-                                class="h-8 w-8 rounded-full {{ $isUser ? 'bg-blue-600 text-white' : 'bg-blue-900/20 text-blue-400 border border-blue-500/20' }} flex items-center justify-center shrink-0 mt-1">
-                                <span
-                                    class="material-symbols-outlined text-[18px]">{{ $isUser ? 'person' : 'smart_toy' }}</span>
-                            </div>
-                            <div class="flex flex-col gap-1.5 {{ $isUser ? 'items-end' : '' }}">
-                                <div class="flex items-baseline gap-2 {{ $isUser ? 'flex-row-reverse' : '' }}">
-                                    <span
-                                        class="text-sm font-semibold text-slate-900 dark:text-white">{{ $isUser ? __('Anda') : $agent->name }}</span>
-                                    <span class="text-xs text-slate-500">{{ $msg->created_at->format('H:i') }}</span>
-                                </div>
-                                <div
-                                    class="p-4 rounded-xl {{ $isUser ? 'bg-blue-600 rounded-tr-none text-white' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-tl-none text-slate-700 dark:text-slate-200 shadow-sm' }} text-sm leading-relaxed">
-                                    @if($isUser)
-                                        <div class="group/user flex items-start gap-4">
-                                            <p class="flex-1 whitespace-pre-wrap break-words">{!! nl2br(e($msg->content)) !!}</p>
+            {{-- ── MESSAGES AREA ───────────────────────── --}}
+            <div id="messages" class="flex-1 overflow-y-auto py-6">
+
+                @php $hasMessages = isset($conversation) && $conversation->messages->count() > 0; @endphp
+
+                @if($hasMessages)
+                    {{-- Existing Messages --}}
+                    <div id="msg-inner" class="max-w-2xl mx-auto px-4 space-y-6">
+                        @foreach($conversation->messages as $msg)
+                            @php $isUser = $msg->role === 'user'; @endphp
+                            @if($isUser)
+                                {{-- User Message --}}
+                                <div class="flex justify-end">
+                                    <div class="group/user flex flex-col items-end gap-1 max-w-[85%]">
+                                        <span class="text-xs text-slate-400 pr-1">{{ $msg->created_at->format('H:i') }}</span>
+                                        <div
+                                            class="bg-blue-600 text-white text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-br-sm relative">
+                                            <p class="whitespace-pre-wrap break-words">{{ $msg->content }}</p>
                                             <button data-content="{{ $msg->content }}"
                                                 onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
-                                                class="opacity-0 group-hover/user:opacity-100 p-1 -m-1 text-white/70 hover:text-white transition-opacity shrink-0"
-                                                title="Copy Prompt">
+                                                class="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/user:opacity-100 p-1 text-slate-400 hover:text-blue-500 transition-opacity"
+                                                title="Salin">
                                                 <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                             </button>
                                         </div>
-                                    @else
-                                        <div class="group/bot flex items-start gap-4">
-                                            <div class="flex-1 overflow-x-auto">
-                                                <div class="markdown-content" data-raw-content="{{ base64_encode($msg->content) }}">
-                                                </div>
-                                                @if(isset($msg->metadata['image_url']))
-                                                    <div class="mt-3 group/img relative inline-block max-w-full">
-                                                        <img src="{{ $msg->metadata['image_url'] }}"
-                                                            class="max-w-full rounded-xl shadow-lg cursor-zoom-in block"
-                                                            alt="Generated image" onclick="openImageModal(this.src)">
-                                                        <div
-                                                            class="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                                            <button onclick="copyImageToClipboard('{{ $msg->metadata['image_url'] }}')"
-                                                                class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm"
-                                                                title="Copy">
-                                                                <span class="material-symbols-outlined text-[16px]">content_copy</span>
-                                                            </button>
-                                                            <a href="{{ $msg->metadata['image_url'] }}" download="ai_image.png"
-                                                                class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm"
-                                                                title="Download">
-                                                                <span class="material-symbols-outlined text-[16px]">download</span>
+                                    </div>
+                                </div>
+                            @else
+                                {{-- AI Message --}}
+                                <div class="flex gap-3 group/bot">
+                                    <div
+                                        class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 shrink-0 mt-0.5">
+                                        @if($agent->avatar_path)
+                                            <img src="{{ Storage::url($agent->avatar_path) }}"
+                                                class="w-full h-full rounded-full object-cover">
+                                        @else
+                                            <span class="material-symbols-outlined text-[16px]">smart_toy</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex flex-col gap-1 min-w-0 flex-1">
+                                        <div class="flex items-baseline gap-2">
+                                            <span
+                                                class="text-xs font-semibold text-slate-700 dark:text-slate-300">{{ $agent->name }}</span>
+                                            <span class="text-xs text-slate-400">{{ $msg->created_at->format('H:i') }}</span>
+                                        </div>
+                                        <div class="text-slate-800 dark:text-slate-200 text-[15px] leading-relaxed">
+                                            <div class="group/bot-inner flex items-start gap-2">
+                                                <div class="flex-1 overflow-x-auto">
+                                                    <div class="markdown-content"
+                                                        data-raw-content="{{ base64_encode($msg->content) }}"></div>
+                                                    @if(isset($msg->metadata['image_url']))
+                                                        <div class="mt-3 group/img relative inline-block max-w-full">
+                                                            <img src="{{ $msg->metadata['image_url'] }}"
+                                                                class="max-w-full rounded-xl shadow-lg cursor-zoom-in block"
+                                                                alt="Generated image" onclick="openImageModal(this.src)">
+                                                            <div
+                                                                class="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                                <button
+                                                                    onclick="copyImageToClipboard('{{ $msg->metadata['image_url'] }}')"
+                                                                    class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm"
+                                                                    title="Salin"><span
+                                                                        class="material-symbols-outlined text-[16px]">content_copy</span></button>
+                                                                <a href="{{ $msg->metadata['image_url'] }}" download="ai_image.png"
+                                                                    class="p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm"
+                                                                    title="Unduh"><span
+                                                                        class="material-symbols-outlined text-[16px]">download</span></a>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                    @if(isset($msg->metadata['pdf_path']))
+                                                        <div class="mt-3">
+                                                            <a href="{{ route('messages.pdf', ['message' => $msg->id]) }}"
+                                                                class="inline-flex items-center px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-medium text-blue-600 dark:text-blue-400 transition-colors gap-1">
+                                                                <span
+                                                                    class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                                                Unduh Laporan PDF
                                                             </a>
                                                         </div>
-                                                    </div>
-                                                @endif
-                                                @if(isset($msg->metadata['pdf_path']))
-                                                    <div class="mt-3">
-                                                        <a href="{{ route('messages.pdf', ['message' => $msg->id]) }}"
-                                                            class="inline-flex items-center px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-medium text-blue-600 dark:text-blue-400 transition-colors gap-1">
-                                                            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                                                            {{ __('Unduh Laporan PDF') }}
-                                                        </a>
-                                                    </div>
-                                                @endif
-                                                @if(isset($msg->metadata['excel_path']))
-                                                    <div class="mt-3">
-                                                        <a href="{{ route('messages.excel', ['message' => $msg->id]) }}"
-                                                            class="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-200 dark:border-emerald-700 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors gap-1">
-                                                            <span class="material-symbols-outlined text-[16px]">table_view</span>
-                                                            {{ __('Unduh File Excel') }}
-                                                        </a>
-                                                    </div>
-                                                @endif
+                                                    @endif
+                                                    @if(isset($msg->metadata['excel_path']))
+                                                        <div class="mt-3">
+                                                            <a href="{{ route('messages.excel', ['message' => $msg->id]) }}"
+                                                                class="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-200 dark:border-emerald-700 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors gap-1">
+                                                                <span class="material-symbols-outlined text-[16px]">table_view</span>
+                                                                Unduh File Excel
+                                                            </a>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <button data-content="{{ $msg->content }}"
+                                                    onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
+                                                    class="opacity-0 group-hover/bot:opacity-100 p-1 text-slate-400 hover:text-blue-500 transition-opacity shrink-0 mt-1"
+                                                    title="Salin">
+                                                    <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                                </button>
                                             </div>
-                                            <button data-content="{{ $msg->content }}"
-                                                onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
-                                                class="opacity-0 group-hover/bot:opacity-100 p-1 -m-1 text-slate-400 hover:text-blue-500 transition-opacity shrink-0"
-                                                title="Copy Response">
-                                                <span class="material-symbols-outlined text-[16px]">content_copy</span>
-                                            </button>
                                         </div>
-                                    @endif
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    @endforeach
+                            @endif
+                        @endforeach
+                    </div>
                 @else
-                    <!-- Pesan Awal AI -->
-                    <div class="flex gap-4 max-w-3xl">
+                    {{-- ── WELCOME SCREEN (ChatGPT-style) ── --}}
+                    <div id="welcome-screen"
+                        class="max-w-2xl mx-auto px-4 flex flex-col items-center text-center pt-8 pb-4">
+                        {{-- Agent Avatar --}}
                         <div
-                            class="h-8 w-8 rounded-full bg-blue-900/20 flex items-center justify-center shrink-0 text-blue-400 border border-blue-500/20 mt-1">
-                            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                            class="h-16 w-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 mb-4 shadow-lg">
+                            @if($agent->avatar_path)
+                                <img src="{{ Storage::url($agent->avatar_path) }}"
+                                    class="w-full h-full rounded-2xl object-cover">
+                            @else
+                                <span class="material-symbols-outlined text-[36px]">smart_toy</span>
+                            @endif
                         </div>
-                        <div class="flex flex-col gap-1.5">
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ $agent->name }}</span>
-                                <span class="text-xs text-slate-500">{{ now()->format('H:i') }}</span>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-1">{{ $agent->name }}</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-md leading-relaxed mb-8">
+                            {{ $agent->greeting_message ?? ('Halo! Saya ' . $agent->name . '. Ada yang bisa saya bantu hari ini?') }}
+                        </p>
+
+                        {{-- Quick Question Grid --}}
+                        @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                            <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                                @foreach($agent->quick_questions as $question)
+                                    <button type="button" onclick="sendQuickQuestion({{ json_encode($question) }})"
+                                        class="group px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 text-left text-sm text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-300 transition-all shadow-sm hover:shadow-md leading-snug">
+                                        <span
+                                            class="material-symbols-outlined text-[16px] text-blue-500 mr-1.5 align-middle">spark</span>{{ $question }}
+                                    </button>
+                                @endforeach
                             </div>
-                            <div
-                                class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl rounded-tl-none text-slate-700 dark:text-slate-200 text-sm leading-relaxed shadow-sm">
-                                <p>{{ $agent->greeting_message ?? ('Halo! Saya adalah ' . $agent->name . '. Ada yang bisa saya bantu hari ini?') }}
-                                </p>
-                            </div>
-                        </div>
+                        @endif
                     </div>
                 @endif
             </div>
 
-            <!-- Area Input -->
+            {{-- ── INPUT AREA ──────────────────────────── --}}
             <div class="shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
 
-                <!-- Quick Questions (scrollable chips, shown only when no messages) -->
+                {{-- Quick Questions Popover (accessible any time) --}}
                 @if($agent->quick_questions && count($agent->quick_questions) > 0)
-                    <div id="quick-questions-bar"
-                         class="{{ (!isset($conversation) || $conversation->messages->count() === 0) ? '' : 'hidden' }} px-4 pt-3 pb-0 max-w-full">
-                        <!-- Wrapper dengan mask transparan di tepi supaya terlihat bisa di-scroll -->
-                        <div class="relative w-full">
-                            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1 scroll-smooth" style="scrollbar-width:none">
-                                @foreach($agent->quick_questions as $question)
-                                    <button type="button" onclick="sendQuickQuestion({{ json_encode($question) }})"
-                                        class="flex-shrink-0 max-w-[280px] sm:max-w-md text-left truncate px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-full transition-all border border-blue-200 dark:border-blue-700">
-                                        {{ $question }}
-                                    </button>
-                                @endforeach
-                            </div>
+                    <div id="quick-questions-popover"
+                        class="hidden absolute bottom-full left-0 right-0 z-20 mx-3 mb-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden">
+                        <div
+                            class="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-slate-700">
+                            <span
+                                class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px] text-blue-500">tips_and_updates</span>
+                                Ide Pertanyaan
+                            </span>
+                            <button onclick="toggleQuickQuestions()"
+                                class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                                <span class="material-symbols-outlined text-[18px]">close</span>
+                            </button>
+                        </div>
+                        <div class="p-3 grid grid-cols-1 gap-1.5 max-h-52 overflow-y-auto">
+                            @foreach($agent->quick_questions as $question)
+                                <button type="button" onclick="sendQuickQuestion({{ json_encode($question) }})"
+                                    class="text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 rounded-lg transition-colors leading-snug">
+                                    <span
+                                        class="material-symbols-outlined text-[14px] text-blue-400 mr-1 align-middle">spark</span>{{ $question }}
+                                </button>
+                            @endforeach
                         </div>
                     </div>
                 @endif
 
-                <form id="chat-form" class="p-3 flex flex-col gap-2">
+                <form id="chat-form" class="p-3 relative">
+                    @csrf
+                    <input type="hidden" name="conversation_id" id="conversation_id" value="">
 
-                    <div class="flex items-center gap-3 px-1 relative">
-                        <!-- Toggle Quick Questions Button -->
-                        @if($agent->quick_questions && count($agent->quick_questions) > 0)
-                            <button type="button" onclick="toggleQuickQuestions()" class="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg shrink-0" title="Tampilkan Pertanyaan Cepat">
-                                <span class="material-symbols-outlined text-[16px]">tips_and_updates</span>
-                                <span class="hidden sm:inline">Ide</span>
-                            </button>
-                        @endif
-
-                        @if($agent->hasCapability('image'))
-                            <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 shrink-0 mx-1"></div>
-                            <label class="flex items-center gap-2 cursor-pointer group shrink-0">
-                                <input type="checkbox" id="image-mode-toggle"
-                                    class="rounded border-slate-300 text-blue-600 shadow-sm focus:ring-blue-500 bg-white dark:bg-slate-900 transition-all cursor-pointer">
-                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    <span class="material-symbols-outlined text-[16px]">brush</span>
-                                    Buat Gambar
-                                </span>
-                            </label>
-                            <div id="image-options" class="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-3 hidden shrink-0">
-                                <label for="image-size" class="text-xs text-slate-500 font-semibold hidden sm:inline">Rasio:</label>
-                                <select id="image-size" class="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 py-1 pl-2 pr-6 focus:ring-2 focus:ring-blue-500 outline-none font-medium">
-                                    <option value="1:1">Square (1:1)</option>
-                                    <option value="16:9">Landscape (16:9)</option>
-                                    <option value="9:16">Portrait (9:16)</option>
-                                </select>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Input Row -->
+                    {{-- Input Box --}}
                     <div
-                        class="flex items-end gap-2 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
-                        @csrf
-                        <input type="hidden" name="conversation_id" id="conversation_id" value="">
+                        class="flex items-end gap-2 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all px-3 py-2">
 
+                        {{-- Left Toolbar --}}
+                        <div class="flex items-center gap-1 shrink-0 pb-0.5">
+                            {{-- Ide / Quick Questions toggle --}}
+                            @if($agent->quick_questions && count($agent->quick_questions) > 0)
+                                <button type="button" onclick="toggleQuickQuestions()"
+                                    class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
+                                    title="Ide Pertanyaan">
+                                    <span class="material-symbols-outlined text-[20px]">tips_and_updates</span>
+                                </button>
+                            @endif
+
+                            {{-- Image Mode toggle --}}
+                            @if($agent->hasCapability('image'))
+                                <label
+                                    class="flex items-center cursor-pointer p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                    title="Mode Gambar">
+                                    <input type="checkbox" id="image-mode-toggle" class="sr-only">
+                                    <span class="material-symbols-outlined text-[20px] text-slate-400"
+                                        id="image-mode-icon">brush</span>
+                                </label>
+                                <div id="image-options"
+                                    class="hidden items-center gap-1.5 border-l border-slate-200 dark:border-slate-700 pl-2">
+                                    <select id="image-size"
+                                        class="text-xs bg-transparent border-none text-slate-500 dark:text-slate-400 py-0 pr-5 pl-0 focus:ring-0 outline-none font-medium cursor-pointer">
+                                        <option value="1:1">1:1</option>
+                                        <option value="16:9">16:9</option>
+                                        <option value="9:16">9:16</option>
+                                    </select>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Textarea --}}
                         <textarea id="message-input" name="content"
-                            class="w-full bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 resize-none py-1.5 text-sm max-h-28"
-                            placeholder="Ketik pesan untuk {{ $agent->name }}..." rows="1" required></textarea>
+                            class="flex-1 bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 resize-none py-1.5 text-sm max-h-36 leading-relaxed"
+                            placeholder="Tanya {{ $agent->name }}..." rows="1" required></textarea>
 
-                        <button type="submit" id="send-btn"
-                            class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm flex items-center justify-center shrink-0 w-10 h-10 relative overflow-hidden group"
-                            title="Kirim Pesan">
-                            <!-- Send Icon (Default) -->
-                            <span class="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover:scale-110" id="send-icon">send</span>
-                            <!-- Stop Icon (Hidden initially) -->
-                            <span class="material-symbols-outlined text-[20px] absolute inset-0 m-auto flex items-center justify-center transition-transform duration-200 scale-0 opacity-0 bg-red-500 w-full h-full" id="stop-icon" title="Hentikan Respon">stop</span>
-                        </button>
+                        {{-- Send / Stop button --}}
+                        <div class="shrink-0 pb-0.5">
+                            <button type="submit" id="send-btn"
+                                class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all flex items-center justify-center w-9 h-9 relative overflow-hidden"
+                                title="Kirim">
+                                <span
+                                    class="material-symbols-outlined text-[18px] transition-all duration-200 absolute inset-0 flex items-center justify-center"
+                                    id="send-icon">send</span>
+                                <span
+                                    class="material-symbols-outlined text-[18px] transition-all duration-200 scale-0 opacity-0 absolute inset-0 flex items-center justify-center"
+                                    id="stop-icon">stop</span>
+                            </button>
+                        </div>
                     </div>
+
+                    {{-- Image options expanded bar --}}
+                    @if($agent->hasCapability('image'))
+                        <div id="image-size-bar" class="hidden mt-2 px-1 flex items-center gap-2">
+                            <span class="text-xs text-slate-500">Rasio:</span>
+                        </div>
+                    @endif
                 </form>
 
-                <p class="text-center text-[10px] text-slate-400 pb-2">
+                <p class="text-center text-[10px] text-slate-400 pb-2 px-4">
                     AI dapat membuat kesalahan. Pertimbangkan untuk memeriksa informasi penting.
                 </p>
             </div>
         </main>
     </div>
 
+
     <script>
         function toggleQuickQuestions() {
-            const qqBar = document.getElementById('quick-questions-bar');
-            if (qqBar) {
-                qqBar.classList.toggle('hidden');
+            const qqPopover = document.getElementById('quick-questions-popover');
+            if (qqPopover) {
+                qqPopover.classList.toggle('hidden');
                 // Optional: scroll slightly to reveal them if input is at the bottom
                 setTimeout(() => {
                     const messagesEl = document.getElementById('messages');
@@ -349,11 +466,11 @@
             messageInput.value = question;
             messageInput.style.height = 'auto';
             messageInput.style.height = messageInput.scrollHeight + 'px';
-            
-            // Auto hide again after sending
-            const qqBar = document.getElementById('quick-questions-bar');
-            if (qqBar) qqBar.classList.add('hidden');
-            
+
+            // Hide the popover and welcome screen
+            const qqPopover = document.getElementById('quick-questions-popover');
+            if (qqPopover) qqPopover.classList.add('hidden');
+
             document.getElementById('chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
         }
     </script>
@@ -462,6 +579,33 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.5);
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 0.8);
+        }
     </style>
 
     <script>
@@ -499,26 +643,39 @@
             conversationIdEl.value = conversationId;
         }
 
+        function hideWelcomeScreen() {
+            const ws = document.getElementById('welcome-screen');
+            if (ws) ws.remove();
+            // Ensure the inner container exists
+            if (!document.getElementById('msg-inner')) {
+                const inner = document.createElement('div');
+                inner.id = 'msg-inner';
+                inner.className = 'max-w-2xl mx-auto px-4 space-y-6';
+                messagesEl.appendChild(inner);
+            }
+        }
+
+        function getMessageContainer() {
+            // Return the existing inner container or messagesEl as fallback
+            return document.getElementById('msg-inner') || messagesEl;
+        }
+
         function addMessage(role, content, metadata = {}) {
+            hideWelcomeScreen();
+            const container = getMessageContainer();
             const messageDiv = document.createElement('div');
             const isUser = role === 'user';
 
-            messageDiv.className = isUser ? 'flex flex-row-reverse gap-4 max-w-3xl ml-auto' : 'flex gap-4 max-w-3xl';
+            messageDiv.className = isUser ? 'flex justify-end' : 'flex gap-3 group/bot';
 
             if (isUser) {
                 messageDiv.innerHTML = `
-                    <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 mt-1 text-white">
-                        <span class="material-symbols-outlined text-[18px]">person</span>
-                    </div>
-                    <div class="flex flex-col gap-1.5 items-end">
-                        <div class="flex items-baseline gap-2 flex-row-reverse">
-                            <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ __('Anda') }}</span>
-                            <span class="text-xs text-slate-500">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
-                        </div>
-                        <div class="bg-blue-600 p-4 rounded-xl rounded-tr-none text-white text-sm leading-relaxed shadow-sm group/user flex items-start gap-3">
-                            <p class="flex-1 whitespace-pre-wrap break-words">${escapeHtml(content)}</p>
+                    <div class="group/user flex flex-col items-end gap-1 max-w-[85%]">
+                        <span class="text-xs text-slate-400 pr-1">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <div class="bg-blue-600 text-white text-sm leading-relaxed px-4 py-3 rounded-2xl rounded-br-sm relative">
+                            <p class="whitespace-pre-wrap break-words">${escapeHtml(content)}</p>
                             <button data-content="${escapeHtml(content)}" onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
-                                class="opacity-0 group-hover/user:opacity-100 p-1 -m-1 text-white/70 hover:text-white transition-opacity shrink-0" title="Copy Prompt">
+                                class="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/user:opacity-100 p-1 text-slate-400 hover:text-blue-500 transition-opacity" title="Salin">
                                 <span class="material-symbols-outlined text-[16px]">content_copy</span>
                             </button>
                         </div>
@@ -526,7 +683,7 @@
                 `;
             } else {
                 let processedContent = parseReasoningTags(content);
-                let contentHtml = `<div class="markdown-content text-sm">${renderMarkdown(processedContent)}</div>`;
+                let contentHtml = `<div class="markdown-content text-[15px]">${renderMarkdown(processedContent)}</div>`;
 
                 if (metadata.image_url) {
                     contentHtml += `
@@ -545,39 +702,27 @@
                 }
 
                 if (metadata.pdf_path) {
-                    contentHtml += `<div class="mt-3">
-                        <a href="/messages/${metadata.message_id}/pdf" class="inline-flex items-center px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-medium text-blue-600 dark:text-blue-400 transition-colors gap-1">
-                            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                            {{ __('Unduh Laporan PDF') }}
-                        </a>
-                    </div>`;
+                    contentHtml += `<div class="mt-3"><a href="/messages/${metadata.message_id}/pdf" class="inline-flex items-center px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-md text-xs font-medium text-blue-600 dark:text-blue-400 transition-colors gap-1"><span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>{{ __('Unduh Laporan PDF') }}</a></div>`;
                 }
 
                 if (metadata.excel_path) {
-                    contentHtml += `<div class="mt-3">
-                        <a href="/messages/${metadata.message_id}/excel" class="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-200 dark:border-emerald-700 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors gap-1">
-                            <span class="material-symbols-outlined text-[16px]">table_view</span>
-                            {{ __('Unduh File Excel') }}
-                        </a>
-                    </div>`;
+                    contentHtml += `<div class="mt-3"><a href="/messages/${metadata.message_id}/excel" class="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-200 dark:border-emerald-700 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors gap-1"><span class="material-symbols-outlined text-[16px]">table_view</span>{{ __('Unduh File Excel') }}</a></div>`;
                 }
 
                 messageDiv.innerHTML = `
-                    <div class="h-8 w-8 rounded-full bg-blue-900/20 flex items-center justify-center shrink-0 text-blue-400 border border-blue-500/20 mt-1">
-                        <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                    <div class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 mt-0.5">
+                        <span class="material-symbols-outlined text-[16px]">smart_toy</span>
                     </div>
-                    <div class="flex flex-col gap-1.5">
+                    <div class="flex flex-col gap-1 min-w-0 flex-1">
                         <div class="flex items-baseline gap-2">
-                            <span class="text-sm font-semibold text-slate-900 dark:text-white">${'{{ $agent->name }}'}</span>
-                            <span class="text-xs text-slate-500">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">${'{{ $agent->name }}'}</span>
+                            <span class="text-xs text-slate-400">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
-                        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl rounded-tl-none text-slate-700 dark:text-slate-200 text-sm leading-relaxed shadow-sm">
-                            <div class="group/bot flex items-start gap-3">
-                                <div class="flex-1 overflow-x-auto">
-                                    ${contentHtml}
-                                </div>
+                        <div class="text-slate-800 dark:text-slate-200 leading-relaxed">
+                            <div class="group/bot-inner flex items-start gap-2">
+                                <div class="flex-1 overflow-x-auto">${contentHtml}</div>
                                 <button data-content="${escapeHtml(content)}" onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
-                                    class="opacity-0 group-hover/bot:opacity-100 p-1 -m-1 text-slate-400 hover:text-blue-500 transition-opacity shrink-0" title="Copy Response">
+                                    class="opacity-0 group-hover/bot:opacity-100 p-1 text-slate-400 hover:text-blue-500 transition-opacity shrink-0 mt-1" title="Salin">
                                     <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                 </button>
                             </div>
@@ -586,7 +731,7 @@
                 `;
             }
 
-            messagesEl.appendChild(messageDiv);
+            container.appendChild(messageDiv);
             messagesEl.scrollTop = messagesEl.scrollHeight;
 
             if (!isUser) {
@@ -597,20 +742,21 @@
         function addTypingIndicator() {
             const indicator = document.createElement('div');
             indicator.id = 'typing-indicator';
-            indicator.className = 'flex gap-4 max-w-3xl';
+            indicator.className = 'flex gap-3 mt-2';
             indicator.innerHTML = `
-                <div class="h-8 w-8 rounded-full bg-blue-900/20 flex items-center justify-center shrink-0 text-blue-400 border border-blue-500/20 mt-1">
-                    <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                <div class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 text-blue-500 border border-blue-200 dark:border-blue-500/20 mt-0.5">
+                    <span class="material-symbols-outlined text-[16px]">smart_toy</span>
                 </div>
                 <div class="flex items-center">
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-xl rounded-tl-none flex gap-1 items-center">
+                    <div class="px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1.5 items-center bg-slate-100 dark:bg-slate-800">
                         <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-                        <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                        <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+                        <div class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
                     </div>
                 </div>
             `;
-            messagesEl.appendChild(indicator);
+            const container = getMessageContainer();
+            container.appendChild(indicator);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
@@ -639,7 +785,7 @@
             const sendIcon = document.getElementById('send-icon');
             const stopIcon = document.getElementById('stop-icon');
             const sendBtn = document.getElementById('send-btn');
-            
+
             if (isGenerating) {
                 sendBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
                 sendBtn.classList.add('bg-red-500', 'hover:bg-red-600', 'animate-pulse');
@@ -675,28 +821,31 @@
             const content = messageInput.value.trim();
             if (!content) return;
 
-            // Instant feedback
+            // ── Instant UI feedback (no blocking) ──
             addMessage('user', content);
             messageInput.value = '';
             messageInput.style.height = 'auto';
             messageInput.disabled = true;
-            
-            // Hide quick questions automatically
-            const qqBar = document.getElementById('quick-questions-bar');
-            if (qqBar) qqBar.classList.add('hidden');
+
+            // Hide quick questions popover and welcome screen
+            const qqPopover = document.getElementById('quick-questions-popover');
+            if (qqPopover) qqPopover.classList.add('hidden');
+
+            // Show typing + generating state immediately, BEFORE awaiting network
+            addTypingIndicator();
+            setGeneratingState(true);
 
             if (!conversationId) {
                 try {
                     await createConversation();
                 } catch (error) {
+                    removeTypingIndicator();
+                    setGeneratingState(false);
                     addMessage('assistant', '{{ __("Gagal membuat percakapan. Silakan segarkan halaman.") }}');
                     messageInput.disabled = false;
                     return;
                 }
             }
-
-            addTypingIndicator();
-            setGeneratingState(true);
 
             let requestBody = {
                 conversation_id: conversationId,

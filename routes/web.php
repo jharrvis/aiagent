@@ -18,7 +18,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/agents/{agent}', function (\App\Models\Agent $agent) {
-        return view('chat', compact('agent'));
+        $recentConversations = \App\Models\Conversation::where('agent_id', $agent->id)
+            ->where('user_id', auth()->id())
+            ->orderByDesc('updated_at')
+            ->limit(20)
+            ->get();
+        return view('chat', compact('agent', 'recentConversations'));
     })->name('agents.chat');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
