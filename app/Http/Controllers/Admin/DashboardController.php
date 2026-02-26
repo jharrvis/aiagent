@@ -33,6 +33,9 @@ class DashboardController extends Controller
 
         $isQuotaExceeded = ($apiUsage * $multiplier) >= $apiLimit && $apiLimit > 0;
 
+        // Load Global Settings
+        $defaultFreeTokens = \App\Models\Setting::get('default_free_tokens', 10000);
+
         return view('admin.dashboard', compact(
             'totalAgents',
             'totalUsers',
@@ -40,7 +43,19 @@ class DashboardController extends Controller
             'totalTokens',
             'apiUsageIdr',
             'apiLimitIdr',
-            'isQuotaExceeded'
+            'isQuotaExceeded',
+            'defaultFreeTokens'
         ));
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $request->validate([
+            'default_free_tokens' => 'required|integer|min:0',
+        ]);
+
+        \App\Models\Setting::set('default_free_tokens', $request->input('default_free_tokens'));
+
+        return back()->with('success', 'Pengaturan global berhasil disimpan.');
     }
 }

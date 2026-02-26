@@ -77,9 +77,11 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load(['conversations' => function ($query) {
-            $query->with('agent')->latest()->take(10);
-        }]);
+        $user->load([
+            'conversations' => function ($query) {
+                $query->with('agent')->latest()->take(10);
+            }
+        ]);
 
         $stats = [
             'total_conversations' => $user->conversations()->count(),
@@ -112,12 +114,14 @@ class UserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'is_admin' => ['boolean'],
+            'token_balance' => ['required', 'integer', 'min:0'],
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
             'is_admin' => $request->boolean('is_admin', false),
+            'token_balance' => $request->token_balance,
         ];
 
         if ($request->filled('password')) {

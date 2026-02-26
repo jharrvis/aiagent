@@ -55,14 +55,16 @@
                 <div
                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm {{ $isQuotaExceeded ? 'ring-2 ring-red-500' : '' }}">
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
-                        {{ __('Tagihan Pelanggan') }}</p>
+                        {{ __('Tagihan Pelanggan') }}
+                    </p>
                     <h4 class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                         Rp {{ number_format($apiUsageIdr, 0, ',', '.') }}
                         <span class="text-xs font-medium text-slate-400">/ Rp
                             {{ number_format($apiLimitIdr, 0, ',', '.') }}</span>
                     </h4>
                     <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">
-                        {{ __('Berdasarkan Quota Beli') }}</p>
+                        {{ __('Berdasarkan Quota Beli') }}
+                    </p>
                 </div>
             </div>
 
@@ -136,7 +138,9 @@
                             <span class="material-symbols-outlined text-[32px]">analytics</span>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{{ __('Analitik & Laporan') }}
+                            <h3
+                                class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                                {{ __('Analitik & Laporan') }}
                             </h3>
                             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">
                                 {{ __('Pantau penggunaan API dan aktivitas model AI secara real-time.') }}
@@ -145,6 +149,47 @@
                     </div>
                 </a>
             </div>
+
+            <!-- Global Settings -->
+            <div
+                class="mt-8 bg-white dark:bg-slate-900 overflow-hidden shadow-sm sm:rounded-2xl border border-slate-200 dark:border-slate-800">
+                <div class="p-6 sm:p-8">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">
+                        {{ __('Pengaturan Global Token') }}
+                    </h3>
+
+                    @if(session('success'))
+                        <div
+                            class="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-900/30 dark:text-green-400">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    <form action="{{ route('admin.settings.save') }}" method="POST" class="max-w-xl">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="default_free_tokens"
+                                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                {{ __('Kuota Token Gratis Pengguna Baru') }}
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" name="default_free_tokens" id="default_free_tokens"
+                                    value="{{ old('default_free_tokens', $defaultFreeTokens) }}"
+                                    class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:border-blue-500 focus:ring-blue-500"
+                                    min="0" step="1000" required>
+                                <button type="submit"
+                                    class="shrink-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                                    {{ __('Simpan') }}
+                                </button>
+                            </div>
+                            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                {{ __('Setiap pengguna yang baru mendaftar akan otomatis mendapatkan saldo token ini secara gratis.') }}
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
 </x-app-layout>

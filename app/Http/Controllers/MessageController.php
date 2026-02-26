@@ -44,15 +44,11 @@ class MessageController extends Controller
             $request->input('content')
         );
 
-        // Check Quota before API Call
-        $keyInfo = $this->llmService->getKeyInfo();
-        $apiUsage = $keyInfo['usage'] ?? 0;
-        $apiLimit = $keyInfo['limit'] ?? 0;
-        $multiplier = $this->llmService->getProfitMultiplier();
-
-        if (($apiUsage * $multiplier) >= $apiLimit && $apiLimit > 0) {
+        // Check User Quota
+        $user = $request->user();
+        if ($user->token_balance <= 0) {
             return response()->json([
-                'error' => 'Quota pemakaian AI Anda telah habis. Harap hubungi admin untuk melakukan top-up.',
+                'error' => 'Kuota token Anda telah habis. Silakan lakukan Top-Up untuk terus mengobrol.',
             ], 403);
         }
 
@@ -109,6 +105,16 @@ class MessageController extends Controller
             'completion_tokens' => $usage['completion_tokens'] ?? null,
             'total_tokens' => $usage['total_tokens'] ?? null,
         ]);
+
+        // Deduct Token Balance
+        if (isset($usage['total_tokens'])) {
+            $user->decrement('token_balance', $usage['total_tokens']);
+
+            // To prevent negative balance displaying in UI (optional safeguard)
+            if ($user->token_balance < 0) {
+                $user->update(['token_balance' => 0]);
+            }
+        }
 
         if (isset($metadata['pdf_path'])) {
             $metadata['message_id'] = $assistantMessage->id;

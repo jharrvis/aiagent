@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/settings', [\App\Http\Controllers\Admin\DashboardController::class, 'saveSettings'])->name('settings.save');
 
     Route::resource('agents', \App\Http\Controllers\Admin\AgentController::class);
     Route::post('agents/{agent}/knowledge', [\App\Http\Controllers\Admin\AgentController::class, 'uploadKnowledge'])

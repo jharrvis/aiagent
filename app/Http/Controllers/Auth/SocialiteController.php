@@ -41,6 +41,7 @@ class SocialiteController extends Controller
                     'google_id' => $googleUser->id,
                     'avatar' => $googleUser->avatar,
                     'password' => Hash::make(Str::random(24)),
+                    'token_balance' => \App\Models\Setting::get('default_free_tokens', 10000),
                 ]);
             }
 

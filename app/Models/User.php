@@ -17,6 +17,7 @@ class User extends Authenticatable
         'is_admin',
         'google_id',
         'avatar',
+        'token_balance',
     ];
 
     protected $hidden = [

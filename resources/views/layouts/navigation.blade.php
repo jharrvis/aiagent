@@ -64,6 +64,16 @@
                 </button>
 
                 @auth
+                    {{-- Token Balance Badge --}}
+                    <div
+                        class="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg mr-2 border border-slate-200 dark:border-slate-700">
+                        <span class="material-symbols-outlined text-[16px] text-amber-500">diamond</span>
+                        <span
+                            class="text-sm font-bold {{ auth()->user()->token_balance < 500 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300' }}">
+                            {{ number_format(auth()->user()->token_balance, 0, ',', '.') }}
+                        </span>
+                    </div>
+
                     {{-- User Dropdown --}}
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -161,6 +171,20 @@
         {{-- Navigation Links --}}
         <div class="flex-1 overflow-y-auto px-4 py-4 space-y-1">
             @auth
+                {{-- Mobile Token Balance --}}
+                <div
+                    class="flex items-center justify-between px-3 py-3 mb-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sisa
+                        Token</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px] text-amber-500">diamond</span>
+                        <span
+                            class="text-sm font-bold {{ auth()->user()->token_balance < 500 ? 'text-red-500' : 'text-slate-700 dark:text-slate-200' }}">
+                            {{ number_format(auth()->user()->token_balance, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+
                 <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 mb-2">Menu
                 </p>
 

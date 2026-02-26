@@ -69,7 +69,7 @@
                     </div>
 
                     <!-- Role -->
-                    <div class="mb-8">
+                    <div class="mb-6">
                         <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
                             {{ __('Role Pengguna') }}
                         </label>
@@ -86,6 +86,26 @@
                         <p class="mt-2 text-xs text-slate-500 dark:text-slate-500">
                             {{ __('Admin memiliki akses penuh ke panel admin untuk mengelola agen dan pengguna.') }}
                         </p>
+                    </div>
+
+                    <!-- Token Balance -->
+                    <div class="mb-8">
+                        <label for="token_balance" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                            {{ __('Saldo Token (Manual Top-Up)') }}
+                        </label>
+                        <div class="relative max-w-xs">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <span class="material-symbols-outlined text-[18px] text-amber-500">diamond</span>
+                            </div>
+                            <input type="number" name="token_balance" id="token_balance" value="{{ old('token_balance', $user->token_balance) }}" required min="0"
+                                class="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all @error('token_balance') border-red-500 @enderror">
+                        </div>
+                        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                            {{ __('Update jumlah token jika pengguna melakukan pembayaran manual.') }}
+                        </p>
+                        @error('token_balance')
+                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Actions -->
