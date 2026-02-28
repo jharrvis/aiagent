@@ -15,7 +15,7 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div
                 class="bg-white dark:bg-slate-900 shadow-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                <div class="p-8 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
+                <div class="p-6 sm:p-8 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('Detail Personil AI') }}</h3>
                         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -25,8 +25,8 @@
                     <div class="flex items-center gap-3" x-data="{ active: {{ old('is_active', $agent->is_active) ? 'true' : 'false' }} }">
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="is_active" value="1" x-model="active" {{ old('is_active', $agent->is_active) ? 'checked' : '' }} class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                            <span class="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300" x-text="active ? 'Aktif' : 'Nonaktif'">
+                            <div class="relative w-12 h-7 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            <span class="ms-3 text-sm font-bold text-slate-700 dark:text-slate-300" x-text="active ? 'Aktif' : 'Nonaktif'">
                                 {{ old('is_active', $agent->is_active) ? 'Aktif' : 'Nonaktif' }}
                             </span>
                         </label>
