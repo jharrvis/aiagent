@@ -48,7 +48,7 @@ return [
             'meta-llama/llama-3.1-70b-instruct' => 'Llama 3.1 70B (Open source)',
             'meta-llama/llama-3.1-8b-instruct' => 'Llama 3.1 8B (Fast, open)',
             'perplexity/sonar' => 'Perplexity Sonar (Online search with reasoning)',
-            'qwen/qwen-2.5-72b-instruct' => 'Qwen 2.5 72B (Advanced reasoning)',
+            'qwen/qwen3-235b-a22b-2507' => 'Qwen3 235B (Most advanced)',
         ],
     ],
 
