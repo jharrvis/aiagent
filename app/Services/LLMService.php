@@ -62,7 +62,7 @@ class LLMService
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'HTTP-Referer' => config('app.url'),
                 'X-Title' => config('app.name'),
-            ])->post($this->baseUrl . '/chat/completions', $requestBody);
+            ])->timeout(60)->post($this->baseUrl . '/chat/completions', $requestBody);
 
             $duration = round((microtime(true) - $startTime) * 1000, 2);
             Log::info('LLM call completed', [
@@ -126,12 +126,34 @@ class LLMService
                 'reasoning' => $reasoning,
             ];
         } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+
             Log::error('LLM call exception', [
-                'message' => $e->getMessage(),
+                'message' => $errorMessage,
             ]);
+
+            // Check for timeout error
+            if (str_contains($errorMessage, 'cURL error 28') || str_contains($errorMessage, 'timed out')) {
+                return [
+                    'content' => 'Maaf, permintaan Anda memakan waktu terlalu lama. Silakan coba lagi dengan pertanyaan yang lebih singkat atau gunakan model yang lebih cepat.',
+                    'usage' => [],
+                    'error' => 'Timeout',
+                ];
+            }
+
+            // Check for connection error
+            if (str_contains($errorMessage, 'cURL error')) {
+                return [
+                    'content' => 'Maaf, terjadi kesalahan koneksi ke layanan AI. Silakan coba lagi nanti.',
+                    'usage' => [],
+                    'error' => 'Connection error',
+                ];
+            }
+
             return [
                 'content' => 'Sorry, I encountered an error processing your request. Please try again.',
                 'usage' => [],
+                'error' => $errorMessage,
             ];
         }
     }

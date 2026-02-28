@@ -39,17 +39,27 @@ class MessageController extends Controller
             'content' => $request->input('content'),
         ]);
 
-        $context = $this->ragService->retrieve(
-            $conversation->agent_id,
-            $request->input('content')
-        );
-
-        // Check User Quota (Skip if Admin)
+        // Check User Quota (Skip if Admin) - BEFORE RAG to avoid unnecessary API calls
         $user = $request->user();
         if (!$user->is_admin && $user->token_balance <= 0) {
             return response()->json([
                 'error' => 'Kuota token Anda telah habis. Silakan lakukan Top-Up untuk terus mengobrol.',
             ], 403);
+        }
+
+        // RAG retrieval (with error handling)
+        $context = null;
+        try {
+            $context = $this->ragService->retrieve(
+                $conversation->agent_id,
+                $request->input('content')
+            );
+        } catch (\Exception $e) {
+            \Log::warning('RAG retrieval failed, continuing without context', [
+                'agent_id' => $conversation->agent_id,
+                'error' => $e->getMessage(),
+            ]);
+            // Continue without RAG context - don't fail the entire request
         }
 
         $llmResponse = $this->llmService->chat(
