@@ -49,6 +49,7 @@ return [
             'google/gemini-pro-1.5' => 'Gemini 1.5 Pro (Advanced Logic)',
             'meta-llama/llama-3.1-70b-instruct' => 'Llama 3.1 70B (Open source)',
             'meta-llama/llama-3.1-8b-instruct' => 'Llama 3.1 8B (Fast, open)',
+            'perplexity/llama-3.1-sonar-large-128k-online' => 'Perplexity Llama 3.1 Sonar Large (Online search)',
         ],
     ],
 
