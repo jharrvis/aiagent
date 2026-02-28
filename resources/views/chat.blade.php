@@ -880,6 +880,12 @@
 
             currentAbortController = new AbortController();
 
+            // Show "still working" message after 30 seconds for slow models
+            let stillWorkingTimeout = setTimeout(() => {
+                removeTypingIndicator();
+                addMessage('assistant', '⏳ {{ __("Permintaan Anda sedang diproses. Model AI ini mungkin memerlukan waktu lebih lama untuk respons yang kompleks...") }}');
+            }, 30000);
+
             try {
                 const response = await fetch('{{ route("messages.store") }}', {
                     method: 'POST',
@@ -892,6 +898,7 @@
                     signal: currentAbortController.signal
                 });
 
+                clearTimeout(stillWorkingTimeout);
                 removeTypingIndicator();
 
                 if (response.ok) {
@@ -957,11 +964,16 @@
                     }
                 }
             } catch (error) {
+                clearTimeout(stillWorkingTimeout);
                 removeTypingIndicator();
                 if (error.name === 'AbortError') {
                     // Handled synchronously by the abort button click
                     console.log("Fetch aborted");
+                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    // Network error
+                    addMessage('assistant', '{{ __("Maaf, terjadi kesalahan koneksi. Silakan periksa koneksi internet Anda dan coba lagi.") }}');
                 } else {
+                    console.error('Fetch error:', error);
                     addMessage('assistant', '{{ __("Maaf, terjadi kesalahan jaringan. Periksa koneksi internet Anda.") }}');
                 }
             } finally {

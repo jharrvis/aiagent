@@ -62,7 +62,10 @@ class LLMService
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'HTTP-Referer' => config('app.url'),
                 'X-Title' => config('app.name'),
-            ])->timeout(60)->post($this->baseUrl . '/chat/completions', $requestBody);
+            ])->timeout(120)->withOptions([
+                'timeout' => 120,
+                'connect_timeout' => 30,
+            ])->post($this->baseUrl . '/chat/completions', $requestBody);
 
             $duration = round((microtime(true) - $startTime) * 1000, 2);
             Log::info('LLM call completed', [
