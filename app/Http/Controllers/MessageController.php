@@ -60,8 +60,20 @@ class MessageController extends Controller
 
         $response = $llmResponse['content'];
         $usage = $llmResponse['usage'] ?? [];
+        $citations = $llmResponse['citations'] ?? [];
+        $reasoning = $llmResponse['reasoning'] ?? '';
 
         $metadata = [];
+
+        // Store reasoning if available
+        if (!empty($reasoning)) {
+            $metadata['reasoning'] = $reasoning;
+        }
+
+        // Store citations if available
+        if (!empty($citations)) {
+            $metadata['citations'] = $citations;
+        }
 
         $isImageRequest = $request->input('is_image_request', false);
 

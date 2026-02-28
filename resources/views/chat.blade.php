@@ -275,6 +275,38 @@
                                                             </a>
                                                         </div>
                                                     @endif
+
+                                                    {{-- Citations (Perplexity) --}}
+                                                    @if(isset($msg->metadata['citations']) && is_array($msg->metadata['citations']) && count($msg->metadata['citations']) > 0)
+                                                        <div class="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3">
+                                                            <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                                <span class="material-symbols-outlined text-[14px]">menu_book</span>
+                                                                {{ __('Sumber Referensi') }}
+                                                            </h4>
+                                                            <div class="space-y-1.5">
+                                                                @foreach($msg->metadata['citations'] as $index => $citation)
+                                                                    <a href="{{ $citation['url'] ?? '#' }}" target="_blank" rel="noopener noreferrer"
+                                                                        class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group">
+                                                                        <span
+                                                                            class="flex-shrink-0 w-5 h-5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold flex items-center justify-center">
+                                                                            {{ $index + 1 }}
+                                                                        </span>
+                                                                        <div class="min-w-0 flex-1">
+                                                                            @if(isset($citation['title']))
+                                                                                <p class="text-xs font-medium text-blue-700 dark:text-blue-400 group-hover:underline truncate">
+                                                                                    {{ $citation['title'] }}
+                                                                                </p>
+                                                                            @endif
+                                                                            @if(isset($citation['url']))
+                                                                                <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ $citation['url'] }}</p>
+                                                                            @endif
+                                                                        </div>
+                                                                        <span class="material-symbols-outlined text-[14px] text-slate-400 group-hover:text-blue-500 flex-shrink-0">open_in_new</span>
+                                                                    </a>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
                                                 </div>
                                                 <button data-content="{{ $msg->content }}"
                                                     onclick="copyTextToClipboard(this, this.getAttribute('data-content'))"
@@ -700,6 +732,29 @@
 
                 if (metadata.excel_path) {
                     contentHtml += `<div class="mt-3"><a href="/messages/${metadata.message_id}/excel" class="inline-flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800 border border-emerald-200 dark:border-emerald-700 rounded-md text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors gap-1"><span class="material-symbols-outlined text-[16px]">table_view</span>{{ __('Unduh File Excel') }}</a></div>`;
+                }
+
+                // Add citations if available (Perplexity)
+                if (metadata.citations && Array.isArray(metadata.citations) && metadata.citations.length > 0) {
+                    let citationsHtml = `<div class="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3"><h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">menu_book</span>{{ __('Sumber Referensi') }}</h4><div class="space-y-1.5">`;
+
+                    metadata.citations.forEach((citation, index) => {
+                        const title = citation.title || 'Sumber';
+                        const url = citation.url || '#';
+                        citationsHtml += `
+                            <a href="${url}" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group">
+                                <span class="flex-shrink-0 w-5 h-5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold flex items-center justify-center">${index + 1}</span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-medium text-blue-700 dark:text-blue-400 group-hover:underline truncate">${escapeHtml(title)}</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${escapeHtml(url)}</p>
+                                </div>
+                                <span class="material-symbols-outlined text-[14px] text-slate-400 group-hover:text-blue-500 flex-shrink-0">open_in_new</span>
+                            </a>
+                        `;
+                    });
+
+                    citationsHtml += `</div></div>`;
+                    contentHtml += citationsHtml;
                 }
 
                 messageDiv.innerHTML = `

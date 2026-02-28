@@ -43,15 +43,26 @@ class LLMService
         $startTime = microtime(true);
 
         try {
+            // Check if using Perplexity model for citations support
+            $isPerplexity = str_starts_with($agent->openrouter_model_id, 'perplexity/');
+
+            $requestBody = [
+                'model' => $agent->openrouter_model_id,
+                'messages' => $chatMessages,
+                'temperature' => (float) $agent->temperature,
+            ];
+
+            // Add perplexity-specific parameters
+            if ($isPerplexity) {
+                $requestBody['return_citations'] = true;
+                $requestBody['return_reasoning'] = true;
+            }
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'HTTP-Referer' => config('app.url'),
                 'X-Title' => config('app.name'),
-            ])->post($this->baseUrl . '/chat/completions', [
-                        'model' => $agent->openrouter_model_id,
-                        'messages' => $chatMessages,
-                        'temperature' => (float) $agent->temperature,
-                    ]);
+            ])->post($this->baseUrl . '/chat/completions', $requestBody);
 
             $duration = round((microtime(true) - $startTime) * 1000, 2);
             Log::info('LLM call completed', [
@@ -70,9 +81,27 @@ class LLMService
                 ];
             }
 
+            $result = $response->json();
+            $content = $result['choices'][0]['message']['content'] ?? '';
+            $usage = $result['usage'] ?? [];
+
+            // Extract citations if available (Perplexity)
+            $citations = [];
+            if (isset($result['citations']) && is_array($result['citations'])) {
+                $citations = $result['citations'];
+            }
+
+            // Extract reasoning if available
+            $reasoning = '';
+            if (isset($result['choices'][0]['message']['reasoning'])) {
+                $reasoning = $result['choices'][0]['message']['reasoning'];
+            }
+
             return [
-                'content' => $response->json('choices.0.message.content'),
-                'usage' => $response->json('usage'),
+                'content' => $content,
+                'usage' => $usage,
+                'citations' => $citations,
+                'reasoning' => $reasoning,
             ];
         } catch (\Exception $e) {
             Log::error('LLM call exception', [
