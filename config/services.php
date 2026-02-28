@@ -43,8 +43,6 @@ return [
         'models' => [
             'openai/gpt-4o' => 'GPT-4o (Best for general tasks)',
             'openai/gpt-4o-mini' => 'GPT-4o Mini (Fast & efficient)',
-            'anthropic/claude-3.5-sonnet' => 'Claude 3.5 Sonnet (Best for logic)',
-            'anthropic/claude-3-haiku' => 'Claude 3 Haiku (Fast)',
             'google/gemini-2.0-flash-001' => 'Gemini 2.0 Flash (Fast & Smart)',
             'google/gemini-pro-1.5' => 'Gemini 1.5 Pro (Advanced Logic)',
             'meta-llama/llama-3.1-70b-instruct' => 'Llama 3.1 70B (Open source)',
