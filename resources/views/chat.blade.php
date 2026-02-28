@@ -53,21 +53,6 @@
                     </p>
                 </div>
 
-                @if(!empty($agent->capabilities))
-                    <div>
-                        <h4 class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
-                            Kemampuan</h4>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach($agent->capabilities as $cap)
-                                <span
-                                    class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase">
-                                    {{ ucfirst(str_replace('_', ' ', $cap)) }}
-                                </span>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
                 {{-- Collapsible Quick Questions --}}
                 @if($agent->quick_questions && count($agent->quick_questions) > 0)
                     <div>
@@ -200,14 +185,6 @@
                 <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-2">
                     {{ $agent->description ?: 'Agen AI yang siap membantu berbagai tugas Anda.' }}
                 </p>
-                @if(!empty($agent->capabilities))
-                    <div class="flex flex-wrap gap-1.5">
-                        @foreach($agent->capabilities as $cap)
-                            <span
-                                class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 uppercase">{{ ucfirst(str_replace('_', ' ', $cap)) }}</span>
-                        @endforeach
-                    </div>
-                @endif
             </div>
 
             {{-- ── MESSAGES AREA ───────────────────────── --}}

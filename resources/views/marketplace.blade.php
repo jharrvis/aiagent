@@ -51,17 +51,6 @@
                                     {{ $agent->description ?: __('Siap membantu tugas Anda.') }}
                                 </p>
                             </div>
-
-                            <div class="flex flex-wrap gap-2 mt-auto pt-2">
-                                @if($agent->capabilities)
-                                    @foreach($agent->capabilities as $cap)
-                                        <span
-                                            class="px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-semibold border border-blue-100 dark:border-blue-500/20">
-                                            {{ ucfirst(str_replace('_', ' ', $cap)) }}
-                                        </span>
-                                    @endforeach
-                                @endif
-                            </div>
                         </div>
                     </a>
                 @empty
