@@ -71,13 +71,35 @@ class LLMService
             ]);
 
             if ($response->failed()) {
+                $errorBody = $response->body();
+                $errorData = json_decode($errorBody, true);
+                $errorMessage = $errorData['error']['message'] ?? 'Unknown error';
+                $errorCode = $errorData['error']['code'] ?? $response->status();
+
                 Log::error('LLM call failed', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
+                    'body' => $errorBody,
+                    'error_message' => $errorMessage,
+                    'error_code' => $errorCode,
                 ]);
+
+                // Provide specific error messages based on the error
+                $userMessage = 'Sorry, I encountered an error processing your request. Please try again.';
+
+                if ($errorCode === 403 || str_contains($errorMessage, 'Key limit exceeded')) {
+                    $userMessage = 'Maaf, kredit API telah habis. Silakan hubungi administrator untuk melakukan Top-Up kredit.';
+                } elseif ($errorCode === 401) {
+                    $userMessage = 'Maaf, terjadi kesalahan autentikasi dengan layanan AI. Silakan hubungi administrator.';
+                } elseif ($errorCode === 429) {
+                    $userMessage = 'Maaf, permintaan terlalu sering. Silakan tunggu beberapa saat dan coba lagi.';
+                } elseif ($errorCode === 500 || $errorCode >= 500) {
+                    $userMessage = 'Maaf, layanan AI sedang mengalami gangguan. Silakan coba lagi nanti.';
+                }
+
                 return [
-                    'content' => 'Sorry, I encountered an error processing your request. Please try again.',
+                    'content' => $userMessage,
                     'usage' => [],
+                    'error' => $errorMessage,
                 ];
             }
 
