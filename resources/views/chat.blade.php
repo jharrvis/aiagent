@@ -374,6 +374,18 @@
 
                         {{-- Left Toolbar --}}
                         <div class="flex items-center gap-1 shrink-0 pb-0.5">
+                            {{-- File Upload Button --}}
+                            @if($agent->can_analyze_files)
+                                <label
+                                    class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                    title="Upload File untuk Dianalisis (PDF, Word, Excel, TXT, Gambar)">
+                                    <input type="file" id="file-upload" name="file" class="sr-only"
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.json,.xml,.jpg,.jpeg,.png,.gif,.webp"
+                                        onchange="handleFileSelect(event)">
+                                    <span class="material-symbols-outlined text-[20px]" id="file-upload-icon">attach_file</span>
+                                </label>
+                            @endif
+
                             {{-- Ide / Quick Questions toggle --}}
                             @if($agent->quick_questions && count($agent->quick_questions) > 0)
                                 <button type="button" onclick="toggleQuickQuestions()"
@@ -425,6 +437,18 @@
                         </div>
                     </div>
 
+                    {{-- File preview area --}}
+                    <div id="file-preview" class="hidden mt-2 px-1">
+                        <div class="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
+                            <span class="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">insert_drive_file</span>
+                            <span id="file-name" class="text-xs text-slate-700 dark:text-slate-300 flex-1 truncate"></span>
+                            <span id="file-size" class="text-xs text-slate-500"></span>
+                            <button type="button" onclick="removeFile()" class="p-1 text-slate-400 hover:text-red-500 transition-colors">
+                                <span class="material-symbols-outlined text-[16px]">close</span>
+                            </button>
+                        </div>
+                    </div>
+
                     {{-- Image options expanded bar --}}
                     @if($agent->hasCapability('image'))
                         <div id="image-size-bar" class="hidden mt-2 px-1 flex items-center gap-2">
@@ -465,6 +489,94 @@
             if (qqPopover) qqPopover.classList.add('hidden');
 
             document.getElementById('chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+
+        // File upload handling
+        let selectedFile = null;
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file size (max 50MB)
+            const maxSize = 50 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('File terlalu besar. Ukuran maksimal adalah 50MB.');
+                event.target.value = '';
+                return;
+            }
+
+            selectedFile = file;
+            showFilePreview(file);
+        }
+
+        function showFilePreview(file) {
+            const preview = document.getElementById('file-preview');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            const icon = preview.querySelector('.material-symbols-outlined');
+
+            // Get file icon based on type
+            const fileIcon = getFileIcon(file.name);
+            icon.innerText = fileIcon;
+
+            fileName.innerText = file.name;
+            fileSize.innerText = formatFileSize(file.size);
+            preview.classList.remove('hidden');
+
+            // Change upload icon to indicate file is selected
+            const uploadIcon = document.getElementById('file-upload-icon');
+            if (uploadIcon) {
+                uploadIcon.innerText = 'check_circle';
+                uploadIcon.classList.add('text-green-500');
+            }
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            document.getElementById('file-preview').classList.add('hidden');
+            document.getElementById('file-upload').value = '';
+
+            // Reset upload icon
+            const uploadIcon = document.getElementById('file-upload-icon');
+            if (uploadIcon) {
+                uploadIcon.innerText = 'attach_file';
+                uploadIcon.classList.remove('text-green-500');
+            }
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'pdf': 'picture_as_pdf',
+                'doc': 'description',
+                'docx': 'description',
+                'xls': 'table_chart',
+                'xlsx': 'table_chart',
+                'csv': 'table_chart',
+                'txt': 'text_snippet',
+                'md': 'text_snippet',
+                'json': 'data_object',
+                'xml': 'code',
+                'jpg': 'image',
+                'jpeg': 'image',
+                'png': 'image',
+                'gif': 'image',
+                'webp': 'image',
+            };
+            return iconMap[ext] || 'insert_drive_file';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let unit = 0;
+            let size = bytes;
+            while (size >= 1024 && unit < units.length - 1) {
+                size /= 1024;
+                unit++;
+            }
+            return size.toFixed(1) + ' ' + units[unit];
         }
     </script>
 
@@ -838,10 +950,18 @@
             }
 
             const content = messageInput.value.trim();
-            if (!content) return;
+            const hasFile = selectedFile !== null;
+
+            if (!content && !hasFile) return;
 
             // ── Instant UI feedback (no blocking) ──
-            addMessage('user', content);
+            let displayContent = content;
+            if (hasFile) {
+                displayContent = `📎 ${selectedFile.name} (${formatFileSize(selectedFile.size)})${content ? '\n\n' + content : ''}`;
+            }
+            addMessage('user', displayContent);
+
+            // Clear input and file
             messageInput.value = '';
             messageInput.style.height = 'auto';
             messageInput.disabled = true;
@@ -866,35 +986,62 @@
                 }
             }
 
-            let requestBody = {
-                conversation_id: conversationId,
-                content: content
+            // Prepare request data
+            let requestBody;
+            let headers = {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
             };
 
-            const imageToggle = document.getElementById('image-mode-toggle');
-            if (imageToggle && imageToggle.checked) {
-                const imageSize = document.getElementById('image-size').value;
-                requestBody.is_image_request = true;
-                requestBody.image_size = imageSize;
+            if (hasFile) {
+                // Use FormData for file upload
+                const formData = new FormData();
+                formData.append('conversation_id', conversationId);
+                formData.append('file', selectedFile);
+                if (content) {
+                    formData.append('content', content);
+                }
+
+                const imageToggle = document.getElementById('image-mode-toggle');
+                if (imageToggle && imageToggle.checked) {
+                    const imageSize = document.getElementById('image-size').value;
+                    formData.append('is_image_request', 'true');
+                    formData.append('image_size', imageSize);
+                }
+
+                requestBody = formData;
+                // Don't set Content-Type header, browser will set it with boundary
+            } else {
+                // Regular JSON request
+                requestBody = {
+                    conversation_id: conversationId,
+                    content: content
+                };
+
+                const imageToggle = document.getElementById('image-mode-toggle');
+                if (imageToggle && imageToggle.checked) {
+                    const imageSize = document.getElementById('image-size').value;
+                    requestBody.is_image_request = true;
+                    requestBody.image_size = imageSize;
+                }
+
+                headers['Content-Type'] = 'application/json';
+                requestBody = JSON.stringify(requestBody);
             }
 
             currentAbortController = new AbortController();
 
-            // Show "still working" message after 30 seconds for slow models
+            // Show "still working" message after 45 seconds for file analysis
             let stillWorkingTimeout = setTimeout(() => {
                 removeTypingIndicator();
                 addMessage('assistant', '⏳ {{ __("Permintaan Anda sedang diproses. Model AI ini mungkin memerlukan waktu lebih lama untuk respons yang kompleks...") }}');
-            }, 30000);
+            }, 45000);
 
             try {
                 const response = await fetch('{{ route("messages.store") }}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody),
+                    headers: headers,
+                    body: requestBody,
                     signal: currentAbortController.signal
                 });
 
@@ -930,6 +1077,11 @@
                                 mobileTokenEl.classList.add('text-red-500');
                             }
                         }
+                    }
+
+                    // Clear file after successful submission
+                    if (hasFile) {
+                        removeFile();
                     }
 
                     messageInput.disabled = false;

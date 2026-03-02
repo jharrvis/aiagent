@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\UploadedFile;
 use App\Services\LLMService;
 use App\Services\RAGService;
 use App\Services\ExcelGenerator;
@@ -25,7 +26,8 @@ class MessageController extends Controller
     {
         $request->validate([
             'conversation_id' => 'required|exists:conversations,id',
-            'content' => 'required|string',
+            'content' => 'nullable|string',
+            'file' => 'nullable|file|max:51200', // Max 50MB
             'is_image_request' => 'nullable|boolean',
             'image_size' => 'nullable|string|in:1:1,16:9,9:16',
         ]);
@@ -33,20 +35,158 @@ class MessageController extends Controller
         $conversation = Conversation::findOrFail($request->input('conversation_id'));
         $this->authorize('view', $conversation);
 
-        $userMessage = Message::create([
-            'conversation_id' => $conversation->id,
-            'role' => 'user',
-            'content' => $request->input('content'),
-        ]);
-
-        // Check User Quota (Skip if Admin) - BEFORE RAG to avoid unnecessary API calls
+        $agent = $conversation->agent;
         $user = $request->user();
+        $uploadedFile = null;
+        $fileAnalysisResult = null;
+
+        // Check if agent supports file analysis
+        $canAnalyzeFiles = $agent->can_analyze_files ?? false;
+
+        // Handle file upload if present
+        if ($request->hasFile('file')) {
+            if (!$canAnalyzeFiles) {
+                return response()->json([
+                    'error' => 'Agen ini tidak mendukung analisis file. Silakan hubungi administrator.',
+                ], 403);
+            }
+
+            $file = $request->file('file');
+
+            // Validate file type
+            $allowedMimeTypes = [
+                'application/pdf',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+                'application/msword', // .doc
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-excel', // .xls
+                'text/csv',
+                'text/plain',
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'image/webp',
+            ];
+
+            if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+                return response()->json([
+                    'error' => 'Tipe file tidak didukung. File yang didukung: PDF, Word (.docx), Excel (.xlsx), CSV, TXT, dan Gambar (JPG, PNG, GIF, WebP).',
+                ], 422);
+            }
+
+            // Store the file
+            $fileExtension = $file->getClientOriginalExtension();
+            $storedFilename = uniqid('file_') . '.' . $fileExtension;
+            $filePath = $file->storeAs('uploaded-files', $storedFilename, 'public');
+
+            // Determine file type
+            $fileType = $this->determineFileType($file->getMimeType(), $fileExtension);
+
+            // Create uploaded file record
+            $uploadedFile = UploadedFile::create([
+                'conversation_id' => $conversation->id,
+                'message_id' => null, // Will be updated after message creation
+                'original_filename' => $file->getClientOriginalName(),
+                'stored_filename' => $storedFilename,
+                'file_path' => $filePath,
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'file_type' => $fileType,
+            ]);
+
+            // Analyze the file using LLM
+            $userQuery = $request->input('content') ?: 'Analisis file ini secara menyeluruh.';
+            $fileAnalysisResult = $this->llmService->analyzeFile(
+                $agent,
+                $filePath,
+                $file->getClientOriginalName(),
+                $userQuery
+            );
+
+            // Check for analysis errors
+            if (isset($fileAnalysisResult['error'])) {
+                Log::error('File analysis failed', ['error' => $fileAnalysisResult['error']]);
+            }
+        }
+
+        // Check User Quota (Skip if Admin)
         if (!$user->is_admin && $user->token_balance <= 0) {
             return response()->json([
                 'error' => 'Kuota token Anda telah habis. Silakan lakukan Top-Up untuk terus mengobrol.',
             ], 403);
         }
 
+        // Create user message (with or without content)
+        $messageContent = $request->input('content', '');
+
+        // If file was uploaded, prepend file info to message
+        if ($uploadedFile) {
+            $fileInfo = "📎 File diupload: {$uploadedFile->original_filename} ({$uploadedFile->human_readable_size})";
+            if (!empty($messageContent)) {
+                $messageContent = "{$fileInfo}\n\n{$messageContent}";
+            } else {
+                $messageContent = $fileInfo . "\n\nSilakan analisis file ini.";
+            }
+        }
+
+        // If no content and no file, return error
+        if (empty($messageContent) && !$uploadedFile) {
+            return response()->json([
+                'error' => 'Pesan atau file harus diisi.',
+            ], 422);
+        }
+
+        $userMessage = Message::create([
+            'conversation_id' => $conversation->id,
+            'role' => 'user',
+            'content' => $messageContent,
+        ]);
+
+        // Link uploaded file to user message
+        if ($uploadedFile) {
+            $uploadedFile->update(['message_id' => $userMessage->id]);
+        }
+
+        // If file was uploaded, use file analysis result
+        if ($fileAnalysisResult) {
+            $response = $fileAnalysisResult['content'];
+            $usage = $fileAnalysisResult['usage'] ?? [];
+
+            $assistantMessage = Message::create([
+                'conversation_id' => $conversation->id,
+                'role' => 'assistant',
+                'content' => $response,
+                'metadata' => [
+                    'file_analysis' => true,
+                    'file_info' => $fileAnalysisResult['file_info'] ?? null,
+                ],
+                'prompt_tokens' => $usage['prompt_tokens'] ?? null,
+                'completion_tokens' => $usage['completion_tokens'] ?? null,
+                'total_tokens' => $usage['total_tokens'] ?? null,
+            ]);
+
+            // Update analysis summary in uploaded file
+            $uploadedFile->update([
+                'analysis_summary' => \Illuminate\Support\Str::limit($response, 500),
+            ]);
+
+            // Deduct Token Balance (Skip if Admin)
+            if (!$user->is_admin && isset($usage['total_tokens'])) {
+                $user->decrement('token_balance', $usage['total_tokens']);
+                if ($user->token_balance < 0) {
+                    $user->update(['token_balance' => 0]);
+                }
+            }
+
+            return response()->json([
+                'user_message' => $userMessage,
+                'assistant_message' => $assistantMessage,
+                'uploaded_file' => $uploadedFile,
+                'token_balance' => $user->token_balance,
+            ]);
+        }
+
+        // Regular chat flow (no file upload)
         // RAG retrieval (with error handling)
         $context = null;
         try {
@@ -55,11 +195,10 @@ class MessageController extends Controller
                 $request->input('content')
             );
         } catch (\Exception $e) {
-            \Log::warning('RAG retrieval failed, continuing without context', [
+            Log::warning('RAG retrieval failed, continuing without context', [
                 'agent_id' => $conversation->agent_id,
                 'error' => $e->getMessage(),
             ]);
-            // Continue without RAG context - don't fail the entire request
         }
 
         $llmResponse = $this->llmService->chat(
@@ -75,12 +214,10 @@ class MessageController extends Controller
 
         $metadata = [];
 
-        // Store reasoning if available
         if (!empty($reasoning)) {
             $metadata['reasoning'] = $reasoning;
         }
 
-        // Store citations if available
         if (!empty($citations)) {
             $metadata['citations'] = $citations;
         }
@@ -98,7 +235,6 @@ class MessageController extends Controller
             $metadata['pdf_path'] = $pdfPath;
         }
 
-        // Handle Excel generation
         if ($conversation->agent->hasCapability('excel') && $this->needsExcel($request->input('content'))) {
             try {
                 $excelData = $this->extractExcelData($request->input('content'), $response);
@@ -106,15 +242,12 @@ class MessageController extends Controller
                 $metadata['excel_path'] = $excelRelativePath;
                 $metadata['excel_url'] = Storage::disk('public')->url($excelRelativePath);
                 $metadata['excel_filename'] = 'Profit_First_Calculator.xlsx';
-
-                // Append download instruction to response
                 $response .= "\n\n📊 **File Excel berhasil dibuat!** Silakan unduh menggunakan tombol di bawah.";
             } catch (\Exception $e) {
-                \Log::error('Excel generation failed', [
+                Log::error('Excel generation failed', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                 ]);
-                // Continue without Excel file - don't fail the entire request
             }
         }
 
@@ -131,8 +264,6 @@ class MessageController extends Controller
         // Deduct Token Balance (Skip if Admin)
         if (!$user->is_admin && isset($usage['total_tokens'])) {
             $user->decrement('token_balance', $usage['total_tokens']);
-
-            // To prevent negative balance displaying in UI (optional safeguard)
             if ($user->token_balance < 0) {
                 $user->update(['token_balance' => 0]);
             }
@@ -153,6 +284,18 @@ class MessageController extends Controller
             'assistant_message' => $assistantMessage,
             'token_balance' => $user->token_balance,
         ]);
+    }
+
+    private function determineFileType(string $mimeType, string $extension): string
+    {
+        return match(true) {
+            str_contains($mimeType, 'pdf') => 'pdf',
+            str_contains($mimeType, 'excel') || str_contains($mimeType, 'spreadsheet') || in_array($extension, ['xlsx', 'xls', 'csv']) => 'excel',
+            str_contains($mimeType, 'word') || in_array($extension, ['docx', 'doc']) => 'word',
+            str_contains($mimeType, 'text') || in_array($extension, ['txt', 'md', 'json', 'xml']) => 'text',
+            str_contains($mimeType, 'image') => 'image',
+            default => 'other',
+        };
     }
 
     public function downloadPdf(Message $message)

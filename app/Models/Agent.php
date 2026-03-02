@@ -18,6 +18,7 @@ class Agent extends Model
         'capabilities',
         'is_active',
         'can_generate_excel',
+        'can_analyze_files',
         'quick_questions',
         'greeting_message',
     ];
@@ -29,6 +30,7 @@ class Agent extends Model
             'capabilities' => 'array',
             'is_active' => 'boolean',
             'can_generate_excel' => 'boolean',
+            'can_analyze_files' => 'boolean',
             'quick_questions' => 'array',
         ];
     }

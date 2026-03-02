@@ -6,6 +6,7 @@ use App\Models\Agent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class LLMService
 {
@@ -18,6 +19,235 @@ class LLMService
         $this->baseUrl = config('services.openrouter.base_url');
         $this->apiKey = config('services.openrouter.api_key');
         $this->managementKey = config('services.openrouter.management_key');
+    }
+
+    /**
+     * Analyze uploaded file (PDF, Excel, Word, Image) using LLM
+     * Recommended models for file analysis:
+     * - google/gemini-2.0-flash-001: Best for document analysis, fast and accurate
+     * - openai/gpt-4o: Excellent for complex analysis and reasoning
+     * - google/gemini-pro-1.5: Great for large documents (up to 1M tokens)
+     */
+    public function analyzeFile(\App\Models\Agent $agent, string $filePath, string $fileName, string $userQuery = null): array
+    {
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $mimeType = mime_content_type(Storage::path($filePath));
+
+        // Build the analysis prompt
+        $analysisPrompt = $this->buildFileAnalysisPrompt($fileName, $fileExtension, $userQuery);
+
+        // Read file content based on type
+        $fileContent = $this->extractFileContent($filePath, $fileExtension);
+
+        if (!$fileContent) {
+            return [
+                'content' => 'Maaf, saya tidak dapat membaca file ini. Pastikan file tidak rusak dan formatnya didukung (PDF, Excel, Word, TXT, atau Gambar).',
+                'usage' => [],
+                'error' => 'Failed to extract file content',
+            ];
+        }
+
+        $chatMessages = [
+            [
+                'role' => 'system',
+                'content' => $agent->system_prompt . "\n\nAnda adalah asisten ahli dalam menganalisis dokumen dan file. Tugas Anda adalah membantu pengguna memahami isi file, mengekstrak informasi penting, dan menjawab pertanyaan terkait file tersebut.",
+            ],
+            [
+                'role' => 'user',
+                'content' => $analysisPrompt . "\n\n=== ISI FILE ===\n" . $fileContent,
+            ],
+        ];
+
+        $startTime = microtime(true);
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'HTTP-Referer' => config('app.url'),
+                'X-Title' => config('app.name'),
+            ])->timeout(180)->withOptions([
+                'timeout' => 180,
+                'connect_timeout' => 30,
+            ])->post($this->baseUrl . '/chat/completions', [
+                'model' => $agent->openrouter_model_id,
+                'messages' => $chatMessages,
+                'temperature' => (float) $agent->temperature,
+                'max_tokens' => 4096,
+            ]);
+
+            $duration = round((microtime(true) - $startTime) * 1000, 2);
+            Log::info('File analysis completed', [
+                'model' => $agent->openrouter_model_id,
+                'file' => $fileName,
+                'duration_ms' => $duration,
+            ]);
+
+            if ($response->failed()) {
+                $errorBody = $response->body();
+                $errorData = json_decode($errorBody, true);
+                $errorMessage = $errorData['error']['message'] ?? 'Unknown error';
+
+                Log::error('File analysis failed', [
+                    'status' => $response->status(),
+                    'error_message' => $errorMessage,
+                ]);
+
+                return [
+                    'content' => 'Maaf, terjadi kesalahan saat menganalisis file. Silakan coba lagi atau gunakan file yang lebih kecil.',
+                    'usage' => [],
+                    'error' => $errorMessage,
+                ];
+            }
+
+            $result = $response->json();
+            $content = $result['choices'][0]['message']['content'] ?? '';
+            $usage = $result['usage'] ?? [];
+
+            return [
+                'content' => $content,
+                'usage' => $usage,
+                'file_info' => [
+                    'filename' => $fileName,
+                    'extension' => $fileExtension,
+                    'size_kb' => round(Storage::size($filePath) / 1024, 2),
+                ],
+            ];
+        } catch (\Exception $e) {
+            Log::error('File analysis exception', [
+                'message' => $e->getMessage(),
+            ]);
+            return [
+                'content' => 'Maaf, terjadi kesalahan saat memproses file Anda.',
+                'usage' => [],
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Build prompt for file analysis based on file type
+     */
+    private function buildFileAnalysisPrompt(string $fileName, string $extension, ?string $userQuery): string
+    {
+        $prompt = "Saya mengupload file bernama '{$fileName}' untuk dianalisis.\n\n";
+
+        $typeInstructions = match($extension) {
+            'pdf' => "File ini adalah dokumen PDF. Analisislah isi dokumen ini secara menyeluruh. Ekstrak informasi penting, ringkas konten utama, identifikasi poin-poin kunci, dan jawab pertanyaan pengguna jika ada.",
+            'xlsx', 'xls', 'csv' => "File ini adalah spreadsheet Excel/CSV. Analisislah data dalam file ini. Identifikasi pola, tren, statistik penting, dan berikan insight yang berguna. Jawab pertanyaan pengguna terkait data ini jika ada.",
+            'docx', 'doc' => "File ini adalah dokumen Word. Analisislah konten dokumen ini. Berikan ringkasan, identifikasi poin penting, dan jawab pertanyaan pengguna jika ada.",
+            'txt' => "File ini adalah file teks. Analisislah konten dan berikan ringkasan serta insight yang relevan.",
+            'jpg', 'jpeg', 'png', 'gif', 'webp' => "File ini adalah gambar. Deskripsikan apa yang ada dalam gambar, identifikasi elemen visual penting, dan jawab pertanyaan pengguna jika ada.",
+            default => "Analisislah file ini dan berikan informasi yang relevan tentang isinya.",
+        };
+
+        $prompt .= $typeInstructions . "\n\n";
+
+        if ($userQuery) {
+            $prompt .= "Pertanyaan spesifik dari pengguna: {$userQuery}\n\n";
+        }
+
+        $prompt .= "Berikan analisis yang komprehensif, terstruktur, dan mudah dipahami. Gunakan format markdown untuk memperjelas penyajian (heading, bullet points, dll).";
+
+        return $prompt;
+    }
+
+    /**
+     * Extract content from file based on type
+     */
+    private function extractFileContent(string $filePath, string $extension): ?string
+    {
+        try {
+            $fullPath = Storage::path($filePath);
+
+            if (!file_exists($fullPath)) {
+                Log::error('File not found', ['path' => $filePath]);
+                return null;
+            }
+
+            return match($extension) {
+                'pdf' => $this->extractPdfContent($fullPath),
+                'xlsx', 'xls' => $this->extractExcelContent($fullPath),
+                'csv' => file_get_contents($fullPath),
+                'docx' => $this->extractWordContent($fullPath),
+                'doc' => $this->extractOldWordContent($fullPath),
+                'txt', 'md', 'json', 'xml', 'html' => file_get_contents($fullPath),
+                'jpg', 'jpeg', 'png', 'gif', 'webp' => base64_encode(file_get_contents($fullPath)),
+                default => file_get_contents($fullPath),
+            };
+        } catch (\Exception $e) {
+            Log::error('Content extraction failed', [
+                'file' => $filePath,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    private function extractPdfContent(string $filePath): ?string
+    {
+        try {
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf = $parser->parseFile($filePath);
+            return $pdf->getText();
+        } catch (\Exception $e) {
+            Log::error('PDF extraction failed', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    private function extractExcelContent(string $filePath): ?string
+    {
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+            $result = [];
+
+            foreach ($spreadsheet->getWorksheetIterator() as $worksheet) {
+                $result[] = "=== Sheet: {$worksheet->getTitle()} ===";
+                foreach ($worksheet->getRowIterator() as $row) {
+                    $cellIterator = $row->getCellIterator();
+                    $cellIterator->setIterateOnlyExistingCells(false);
+                    $rowData = [];
+                    foreach ($cellIterator as $cell) {
+                        $rowData[] = $cell->getValue();
+                    }
+                    $result[] = implode(' | ', $rowData);
+                }
+            }
+
+            return implode("\n", $result);
+        } catch (\Exception $e) {
+            Log::error('Excel extraction failed', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    private function extractWordContent(string $filePath): ?string
+    {
+        try {
+            $zip = new \ZipArchive();
+            if ($zip->open($filePath) === true) {
+                $content = $zip->getFromName('word/document.xml');
+                if ($content) {
+                    // Strip XML tags and decode HTML entities
+                    $text = strip_tags($content);
+                    $text = html_entity_decode($text);
+                    $zip->close();
+                    return $text;
+                }
+                $zip->close();
+            }
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Word extraction failed', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    private function extractOldWordContent(string $filePath): ?string
+    {
+        // For .doc files, we need external library or return null
+        Log::warning('Old Word format (.doc) not fully supported');
+        return "[File .doc - konten tidak dapat diekstrak sepenuhnya. Konversi ke .docx atau PDF untuk hasil lebih baik.]";
     }
 
     public function chat(\App\Models\Agent $agent, $messages, $context = null): array

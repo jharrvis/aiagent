@@ -189,6 +189,53 @@
                                 </div>
                             </label>
                         </div>
+
+                        <!-- Advanced Features -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <!-- Excel Generation -->
+                            <label
+                                class="relative flex items-center p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 cursor-pointer hover:border-emerald-500/50 transition-all group">
+                                <div class="flex h-5 items-center">
+                                    <input type="checkbox" name="can_generate_excel" value="1"
+                                        {{ old('can_generate_excel', $agent->can_generate_excel ?? false) ? 'checked' : '' }}
+                                        class="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-950 transition-all">
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <span
+                                        class="block text-sm font-bold text-slate-900 dark:text-white">{{ __('Generasi Excel') }}</span>
+                                    <p
+                                        class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-tighter">
+                                        {{ __('Profit First calculator') }}
+                                    </p>
+                                </div>
+                                <span
+                                    class="material-symbols-outlined text-[24px] text-emerald-500">{{ $agent->can_generate_excel ? 'check_circle' : 'table_chart' }}</span>
+                            </label>
+
+                            <!-- File Analysis -->
+                            <label
+                                class="relative flex items-center p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 cursor-pointer hover:border-purple-500/50 transition-all group">
+                                <div class="flex h-5 items-center">
+                                    <input type="checkbox" name="can_analyze_files" value="1"
+                                        {{ old('can_analyze_files', $agent->can_analyze_files ?? false) ? 'checked' : '' }}
+                                        class="h-5 w-5 rounded border-slate-300 text-purple-600 focus:ring-purple-500 bg-white dark:bg-slate-950 transition-all">
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <span
+                                        class="block text-sm font-bold text-slate-900 dark:text-white">{{ __('Analisis File') }}</span>
+                                    <p
+                                        class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-tighter">
+                                        {{ __('PDF, Word, Excel, Gambar') }}
+                                    </p>
+                                </div>
+                                <span
+                                    class="material-symbols-outlined text-[24px] text-purple-500">{{ $agent->can_analyze_files ? 'check_circle' : 'attach_file' }}</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">
+                            <span class="font-semibold text-purple-600 dark:text-purple-400">Analisis File:</span>
+                            {{ __('Mengizinkan pengguna mengupload dokumen (PDF, Word, Excel, TXT, Gambar) untuk dianalisis oleh agen ini. Menggunakan model AI yang sesuai untuk ekstraksi dan analisis konten.') }}
+                        </p>
                     </div>
 
                     <!-- Excel Generation & Quick Questions Section -->

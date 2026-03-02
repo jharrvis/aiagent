@@ -36,6 +36,7 @@ class AgentController extends Controller
             'avatar' => 'nullable|image|max:2048',
             'capabilities' => 'nullable|array',
             'can_generate_excel' => 'nullable|boolean',
+            'can_analyze_files' => 'nullable|boolean',
             'quick_questions' => 'nullable|string',
             'greeting_message' => 'nullable|string',
         ]);
@@ -48,6 +49,7 @@ class AgentController extends Controller
             'openrouter_model_id',
             'capabilities',
             'can_generate_excel',
+            'can_analyze_files',
             'greeting_message',
         ]);
 
@@ -62,7 +64,7 @@ class AgentController extends Controller
         }
 
         $data['capabilities'] = $request->capabilities ?? [];
-        
+
         // Auto-add 'excel' capability if can_generate_excel is enabled
         if ($request->boolean('can_generate_excel') && !in_array('excel', $data['capabilities'])) {
             $data['capabilities'][] = 'excel';
@@ -103,6 +105,7 @@ class AgentController extends Controller
             'avatar' => 'nullable|image|max:2048',
             'capabilities' => 'nullable|array',
             'can_generate_excel' => 'nullable|boolean',
+            'can_analyze_files' => 'nullable|boolean',
             'quick_questions' => 'nullable|string',
             'greeting_message' => 'nullable|string',
         ]);
@@ -115,6 +118,7 @@ class AgentController extends Controller
             'openrouter_model_id',
             'capabilities',
             'can_generate_excel',
+            'can_analyze_files',
             'greeting_message',
         ]);
 
@@ -132,7 +136,7 @@ class AgentController extends Controller
         }
 
         $data['capabilities'] = $request->capabilities ?? [];
-        
+
         // Auto-add 'excel' capability if can_generate_excel is enabled
         if ($request->boolean('can_generate_excel') && !in_array('excel', $data['capabilities'])) {
             $data['capabilities'][] = 'excel';
