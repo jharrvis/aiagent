@@ -31,13 +31,30 @@ class LLMService
     public function analyzeFile(\App\Models\Agent $agent, string $filePath, string $fileName, string $userQuery = null): array
     {
         $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        $mimeType = mime_content_type(Storage::path($filePath));
+
+        // Get full path for local storage
+        $fullPath = storage_path('app/public/' . $filePath);
+
+        // Check if file exists
+        if (!file_exists($fullPath)) {
+            Log::error('File not found for analysis', [
+                'file_path' => $filePath,
+                'full_path' => $fullPath,
+            ]);
+            return [
+                'content' => 'Maaf, file yang diupload tidak ditemukan. Silakan upload ulang.',
+                'usage' => [],
+                'error' => 'File not found',
+            ];
+        }
+
+        $mimeType = mime_content_type($fullPath);
 
         // Build the analysis prompt
         $analysisPrompt = $this->buildFileAnalysisPrompt($fileName, $fileExtension, $userQuery);
 
         // Read file content based on type
-        $fileContent = $this->extractFileContent($filePath, $fileExtension);
+        $fileContent = $this->extractFileContent($fullPath, $fileExtension);
 
         if (!$fileContent) {
             return [
@@ -154,13 +171,11 @@ class LLMService
     /**
      * Extract content from file based on type
      */
-    private function extractFileContent(string $filePath, string $extension): ?string
+    private function extractFileContent(string $fullPath, string $extension): ?string
     {
         try {
-            $fullPath = Storage::path($filePath);
-
             if (!file_exists($fullPath)) {
-                Log::error('File not found', ['path' => $filePath]);
+                Log::error('File not found', ['path' => $fullPath]);
                 return null;
             }
 
@@ -176,8 +191,9 @@ class LLMService
             };
         } catch (\Exception $e) {
             Log::error('Content extraction failed', [
-                'file' => $filePath,
+                'file' => $fullPath,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
             return null;
         }
