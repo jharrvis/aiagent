@@ -165,7 +165,7 @@ class LLMService
                 'file_info' => [
                     'filename' => $fileName,
                     'extension' => $fileExtension,
-                    'size_kb' => round(Storage::size($filePath) / 1024, 2),
+                    'size_kb' => round(Storage::disk('public')->size($filePath) / 1024, 2),
                 ],
             ];
         } catch (\Exception $e) {
