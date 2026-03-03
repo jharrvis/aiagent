@@ -10,6 +10,7 @@ use App\Services\RAGService;
 use App\Services\ExcelGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -42,6 +43,7 @@ class MessageController extends Controller
 
         // Check if agent supports file analysis
         $canAnalyzeFiles = $agent->can_analyze_files ?? false;
+
 
         // Handle file upload if present
         if ($request->hasFile('file')) {
@@ -82,10 +84,34 @@ class MessageController extends Controller
             // Determine file type
             $fileType = $this->determineFileType($file->getMimeType(), $fileExtension);
 
-            // Create uploaded file record
+            // --- Check quota before heavy work ---
+            if (!$user->is_admin && $user->token_balance <= 0) {
+                return response()->json([
+                    'error' => 'Kuota token Anda telah habis. Silakan lakukan Top-Up untuk terus mengobrol.',
+                ], 403);
+            }
+
+            // Build message content for user message
+            $messageContent = $request->input('content', '');
+            $userQuery = $messageContent ?: 'Analisis file ini secara menyeluruh.';
+            $fileInfo = "📎 File diupload: {$file->getClientOriginalName()}";
+            if (!empty($messageContent)) {
+                $displayContent = "{$fileInfo}\n\n{$messageContent}";
+            } else {
+                $displayContent = $fileInfo . "\n\nSilakan analisis file ini.";
+            }
+
+            // Create user message FIRST so we have a valid message_id
+            $userMessage = Message::create([
+                'conversation_id' => $conversation->id,
+                'role' => 'user',
+                'content' => $displayContent,
+            ]);
+
+            // Now create the uploaded file record with a valid message_id
             $uploadedFile = UploadedFile::create([
                 'conversation_id' => $conversation->id,
-                'message_id' => null, // Will be updated after message creation
+                'message_id' => $userMessage->id,
                 'original_filename' => $file->getClientOriginalName(),
                 'stored_filename' => $storedFilename,
                 'file_path' => $filePath,
@@ -95,7 +121,6 @@ class MessageController extends Controller
             ]);
 
             // Analyze the file using LLM
-            $userQuery = $request->input('content') ?: 'Analisis file ini secara menyeluruh.';
             $fileAnalysisResult = $this->llmService->analyzeFile(
                 $agent,
                 $filePath,
@@ -107,48 +132,7 @@ class MessageController extends Controller
             if (isset($fileAnalysisResult['error'])) {
                 Log::error('File analysis failed', ['error' => $fileAnalysisResult['error']]);
             }
-        }
 
-        // Check User Quota (Skip if Admin)
-        if (!$user->is_admin && $user->token_balance <= 0) {
-            return response()->json([
-                'error' => 'Kuota token Anda telah habis. Silakan lakukan Top-Up untuk terus mengobrol.',
-            ], 403);
-        }
-
-        // Create user message (with or without content)
-        $messageContent = $request->input('content', '');
-
-        // If file was uploaded, prepend file info to message
-        if ($uploadedFile) {
-            $fileInfo = "📎 File diupload: {$uploadedFile->original_filename} ({$uploadedFile->human_readable_size})";
-            if (!empty($messageContent)) {
-                $messageContent = "{$fileInfo}\n\n{$messageContent}";
-            } else {
-                $messageContent = $fileInfo . "\n\nSilakan analisis file ini.";
-            }
-        }
-
-        // If no content and no file, return error
-        if (empty($messageContent) && !$uploadedFile) {
-            return response()->json([
-                'error' => 'Pesan atau file harus diisi.',
-            ], 422);
-        }
-
-        $userMessage = Message::create([
-            'conversation_id' => $conversation->id,
-            'role' => 'user',
-            'content' => $messageContent,
-        ]);
-
-        // Link uploaded file to user message
-        if ($uploadedFile) {
-            $uploadedFile->update(['message_id' => $userMessage->id]);
-        }
-
-        // If file was uploaded, use file analysis result
-        if ($fileAnalysisResult) {
             $response = $fileAnalysisResult['content'];
             $usage = $fileAnalysisResult['usage'] ?? [];
 
@@ -187,6 +171,28 @@ class MessageController extends Controller
         }
 
         // Regular chat flow (no file upload)
+        // Check User Quota (Skip if Admin)
+        if (!$user->is_admin && $user->token_balance <= 0) {
+            return response()->json([
+                'error' => 'Kuota token Anda telah habis. Silakan lakukan Top-Up untuk terus mengobrol.',
+            ], 403);
+        }
+
+        // Validate content
+        $messageContent = $request->input('content', '');
+        if (empty($messageContent)) {
+            return response()->json([
+                'error' => 'Pesan atau file harus diisi.',
+            ], 422);
+        }
+
+        // Create user message
+        $userMessage = Message::create([
+            'conversation_id' => $conversation->id,
+            'role' => 'user',
+            'content' => $messageContent,
+        ]);
+
         // RAG retrieval (with error handling)
         $context = null;
         try {
@@ -288,7 +294,7 @@ class MessageController extends Controller
 
     private function determineFileType(string $mimeType, string $extension): string
     {
-        return match(true) {
+        return match (true) {
             str_contains($mimeType, 'pdf') => 'pdf',
             str_contains($mimeType, 'excel') || str_contains($mimeType, 'spreadsheet') || in_array($extension, ['xlsx', 'xls', 'csv']) => 'excel',
             str_contains($mimeType, 'word') || in_array($extension, ['docx', 'doc']) => 'word',

@@ -53,27 +53,66 @@ class LLMService
         // Build the analysis prompt
         $analysisPrompt = $this->buildFileAnalysisPrompt($fileName, $fileExtension, $userQuery);
 
-        // Read file content based on type
-        $fileContent = $this->extractFileContent($fullPath, $fileExtension);
+        // Determine if it's an image file
+        $isImageFile = in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 
-        if (!$fileContent) {
-            return [
-                'content' => 'Maaf, saya tidak dapat membaca file ini. Pastikan file tidak rusak dan formatnya didukung (PDF, Excel, Word, TXT, atau Gambar).',
-                'usage' => [],
-                'error' => 'Failed to extract file content',
+        if ($isImageFile) {
+            // For images: encode as base64 and send via vision multipart format
+            $imageData = base64_encode(file_get_contents($fullPath));
+            $imageMimeType = mime_content_type($fullPath);
+
+            if (!$imageData) {
+                return [
+                    'content' => 'Maaf, saya tidak dapat membaca file gambar ini. Pastikan file tidak rusak.',
+                    'usage' => [],
+                    'error' => 'Failed to read image file',
+                ];
+            }
+
+            $chatMessages = [
+                [
+                    'role' => 'system',
+                    'content' => $agent->system_prompt . "\n\nAnda adalah asisten ahli dalam menganalisis gambar dan dokumen. Tugas Anda adalah membantu pengguna memahami isi file, mengekstrak informasi penting, dan menjawab pertanyaan terkait file tersebut.",
+                ],
+                [
+                    'role' => 'user',
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => $analysisPrompt,
+                        ],
+                        [
+                            'type' => 'image_url',
+                            'image_url' => [
+                                'url' => 'data:' . $imageMimeType . ';base64,' . $imageData,
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        } else {
+            // For non-image files: extract text content and send as text
+            $fileContent = $this->extractFileContent($fullPath, $fileExtension);
+
+            if (!$fileContent) {
+                return [
+                    'content' => 'Maaf, saya tidak dapat membaca file ini. Pastikan file tidak rusak dan formatnya didukung (PDF, Excel, Word, TXT, atau Gambar).',
+                    'usage' => [],
+                    'error' => 'Failed to extract file content',
+                ];
+            }
+
+            $chatMessages = [
+                [
+                    'role' => 'system',
+                    'content' => $agent->system_prompt . "\n\nAnda adalah asisten ahli dalam menganalisis dokumen dan file. Tugas Anda adalah membantu pengguna memahami isi file, mengekstrak informasi penting, dan menjawab pertanyaan terkait file tersebut.",
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $analysisPrompt . "\n\n=== ISI FILE ===\n" . $fileContent,
+                ],
             ];
         }
-
-        $chatMessages = [
-            [
-                'role' => 'system',
-                'content' => $agent->system_prompt . "\n\nAnda adalah asisten ahli dalam menganalisis dokumen dan file. Tugas Anda adalah membantu pengguna memahami isi file, mengekstrak informasi penting, dan menjawab pertanyaan terkait file tersebut.",
-            ],
-            [
-                'role' => 'user',
-                'content' => $analysisPrompt . "\n\n=== ISI FILE ===\n" . $fileContent,
-            ],
-        ];
 
         $startTime = microtime(true);
 
@@ -83,14 +122,14 @@ class LLMService
                 'HTTP-Referer' => config('app.url'),
                 'X-Title' => config('app.name'),
             ])->timeout(180)->withOptions([
-                'timeout' => 180,
-                'connect_timeout' => 30,
-            ])->post($this->baseUrl . '/chat/completions', [
-                'model' => $agent->openrouter_model_id,
-                'messages' => $chatMessages,
-                'temperature' => (float) $agent->temperature,
-                'max_tokens' => 4096,
-            ]);
+                        'timeout' => 180,
+                        'connect_timeout' => 30,
+                    ])->post($this->baseUrl . '/chat/completions', [
+                        'model' => $agent->openrouter_model_id,
+                        'messages' => $chatMessages,
+                        'temperature' => (float) $agent->temperature,
+                        'max_tokens' => 4096,
+                    ]);
 
             $duration = round((microtime(true) - $startTime) * 1000, 2);
             Log::info('File analysis completed', [
@@ -148,7 +187,7 @@ class LLMService
     {
         $prompt = "Saya mengupload file bernama '{$fileName}' untuk dianalisis.\n\n";
 
-        $typeInstructions = match($extension) {
+        $typeInstructions = match ($extension) {
             'pdf' => "File ini adalah dokumen PDF. Analisislah isi dokumen ini secara menyeluruh. Ekstrak informasi penting, ringkas konten utama, identifikasi poin-poin kunci, dan jawab pertanyaan pengguna jika ada.",
             'xlsx', 'xls', 'csv' => "File ini adalah spreadsheet Excel/CSV. Analisislah data dalam file ini. Identifikasi pola, tren, statistik penting, dan berikan insight yang berguna. Jawab pertanyaan pengguna terkait data ini jika ada.",
             'docx', 'doc' => "File ini adalah dokumen Word. Analisislah konten dokumen ini. Berikan ringkasan, identifikasi poin penting, dan jawab pertanyaan pengguna jika ada.",
@@ -179,7 +218,7 @@ class LLMService
                 return null;
             }
 
-            return match($extension) {
+            return match ($extension) {
                 'pdf' => $this->extractPdfContent($fullPath),
                 'xlsx', 'xls' => $this->extractExcelContent($fullPath),
                 'csv' => file_get_contents($fullPath),
@@ -309,9 +348,9 @@ class LLMService
                 'HTTP-Referer' => config('app.url'),
                 'X-Title' => config('app.name'),
             ])->timeout(120)->withOptions([
-                'timeout' => 120,
-                'connect_timeout' => 30,
-            ])->post($this->baseUrl . '/chat/completions', $requestBody);
+                        'timeout' => 120,
+                        'connect_timeout' => 30,
+                    ])->post($this->baseUrl . '/chat/completions', $requestBody);
 
             $duration = round((microtime(true) - $startTime) * 1000, 2);
             Log::info('LLM call completed', [
@@ -528,7 +567,7 @@ class LLMService
             try {
                 // Use management key if available, otherwise use standard key
                 $key = $this->managementKey ?? $this->apiKey;
-                
+
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . $key,
                 ])->get('https://openrouter.ai/api/v1/key');
@@ -631,7 +670,7 @@ class LLMService
             Log::info('Activity API success', [
                 'data_count' => count($result['data'] ?? []),
             ]);
-            
+
             return $result;
         } catch (\Exception $e) {
             Log::error('OpenRouter activity exception', [
@@ -648,7 +687,7 @@ class LLMService
     public function getModelUsageStats(int $days = 30): array
     {
         $activity = $this->getUserActivity();
-        
+
         if (isset($activity['error']) || empty($activity['data'])) {
             return [
                 'models' => [],
@@ -665,7 +704,7 @@ class LLMService
 
         foreach ($activity['data'] as $item) {
             $modelId = $item['model'] ?? 'unknown';
-            
+
             if (!isset($modelStats[$modelId])) {
                 $modelStats[$modelId] = [
                     'model' => $modelId,
@@ -710,7 +749,7 @@ class LLMService
     public function getDailyUsage(): array
     {
         $activity = $this->getUserActivity();
-        
+
         if (isset($activity['error']) || empty($activity['data'])) {
             return [];
         }
@@ -719,7 +758,8 @@ class LLMService
 
         foreach ($activity['data'] as $item) {
             $date = $item['date'] ?? null;
-            if (!$date) continue;
+            if (!$date)
+                continue;
 
             if (!isset($dailyStats[$date])) {
                 $dailyStats[$date] = [
